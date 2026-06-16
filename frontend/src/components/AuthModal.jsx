@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 
 export default function AuthModal({ onClose }) {
+  const navigate = useNavigate()
   const [mode, setMode] = useState('login') // 'login' | 'signup'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -18,11 +20,11 @@ export default function AuthModal({ onClose }) {
     if (mode === 'login') {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) setError(error.message)
-      else onClose()
+      else { onClose(); navigate('/dashboard') }
     } else {
       const { error } = await supabase.auth.signUp({ email, password })
       if (error) setError(error.message)
-      else setSuccess('Check your email to confirm your account.')
+      else { onClose(); navigate('/dashboard') }
     }
 
     setLoading(false)
