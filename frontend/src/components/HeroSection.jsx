@@ -59,7 +59,7 @@ function HeroMockup() {
   )
 }
 
-export default function HeroSection() {
+export default function HeroSection({ onGetStarted }) {
   const textRef = useReveal(0)
 
   return (
@@ -83,11 +83,17 @@ export default function HeroSection() {
             No live classes required. Discover competitions, scholarships, and self-paced courses tailored for you.
           </p>
           <div className="flex flex-wrap gap-4">
-            <button className="gradient-btn text-sm font-semibold text-white px-8 py-3.5 rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2">
+            <button
+              onClick={onGetStarted}
+              className="gradient-btn text-sm font-semibold text-white px-8 py-3.5 rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2"
+            >
               Find Opportunities
               <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
             </button>
-            <button className="border border-primary-container text-primary-container text-sm font-semibold px-8 py-3.5 rounded-lg hover:bg-primary-container/10 transition-colors">
+            <button
+              onClick={onGetStarted}
+              className="border border-primary-container text-primary-container text-sm font-semibold px-8 py-3.5 rounded-lg hover:bg-primary-container/10 transition-colors"
+            >
               Start Learning
             </button>
           </div>

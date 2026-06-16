@@ -11,8 +11,11 @@ function LogoMark() {
   )
 }
 
-export default function Navbar() {
+export default function Navbar({ session, onLoginClick, onSignOut }) {
   const [open, setOpen] = useState(false)
+
+  const user = session?.user
+  const displayName = user?.email?.split('@')[0] ?? ''
 
   return (
     <nav className="bg-surface/80 backdrop-blur-xl sticky top-0 z-50 border-b border-outline-variant/10">
@@ -48,12 +51,34 @@ export default function Navbar() {
 
         {/* Desktop CTAs */}
         <div className="hidden md:flex items-center gap-4">
-          <button className="text-sm font-medium text-on-surface hover:text-primary transition-colors">
-            Log in
-          </button>
-          <button className="gradient-btn text-sm font-semibold text-white px-6 py-2.5 rounded-lg hover:opacity-90 transition-opacity">
-            Join Mentoria
-          </button>
+          {user ? (
+            <>
+              <span className="text-sm text-on-surface-variant">
+                Hi, <span className="text-on-surface font-medium">{displayName}</span>
+              </span>
+              <button
+                onClick={onSignOut}
+                className="text-sm font-medium text-on-surface-variant hover:text-error transition-colors"
+              >
+                Sign Out
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={onLoginClick}
+                className="text-sm font-medium text-on-surface hover:text-primary transition-colors"
+              >
+                Log in
+              </button>
+              <button
+                onClick={onLoginClick}
+                className="gradient-btn text-sm font-semibold text-white px-6 py-2.5 rounded-lg hover:opacity-90 transition-opacity"
+              >
+                Join Mentoria
+              </button>
+            </>
+          )}
         </div>
 
         {/* Mobile hamburger */}
@@ -81,10 +106,29 @@ export default function Navbar() {
             </a>
           ))}
           <div className="flex items-center gap-4 pt-2">
-            <button className="text-sm font-medium text-on-surface">Log in</button>
-            <button className="gradient-btn text-sm font-semibold text-white px-6 py-2.5 rounded-lg">
-              Join Mentoria
-            </button>
+            {user ? (
+              <>
+                <span className="text-sm text-on-surface-variant">{displayName}</span>
+                <button onClick={onSignOut} className="text-sm font-medium text-error">
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => { setOpen(false); onLoginClick() }}
+                  className="text-sm font-medium text-on-surface"
+                >
+                  Log in
+                </button>
+                <button
+                  onClick={() => { setOpen(false); onLoginClick() }}
+                  className="gradient-btn text-sm font-semibold text-white px-6 py-2.5 rounded-lg"
+                >
+                  Join Mentoria
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
