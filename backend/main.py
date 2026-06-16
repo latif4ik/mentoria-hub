@@ -32,7 +32,7 @@ app.add_middleware(
 )
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-MODEL = "gemini-1.5-flash"
+MODEL = "gemini-2.5-flash"
 
 
 class GenerateRequest(BaseModel):
