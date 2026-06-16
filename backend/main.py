@@ -62,11 +62,21 @@ def _retry_delay(exc) -> float:
     return 45.0  # safe default for exhausted free-tier quota
 
 
-def _call_with_retry(client, contents, retries=3):
-    """Free tier returns 429 under bursts; retry respecting Gemini's retryDelay hint."""
+def _call_with_retry(client, contents, retries=3, json_mode=False):
+    """Retry with backoff, respecting Gemini's retryDelay hint on 429s.
+    json_mode=True forces application/json output — prevents malformed quiz JSON.
+    """
+    config = None
+    if json_mode and genai_types is not None:
+        config = genai_types.GenerateContentConfig(
+            response_mime_type="application/json"
+        )
     for attempt in range(retries):
         try:
-            resp = client.models.generate_content(model=MODEL, contents=contents)
+            kwargs = dict(model=MODEL, contents=contents)
+            if config:
+                kwargs["config"] = config
+            resp = client.models.generate_content(**kwargs)
             return resp.text
         except Exception as e:
             logger.error("Gemini attempt %d/%d failed: %s", attempt + 1, retries, e)
@@ -134,7 +144,7 @@ def generate_lesson(req: GenerateRequest):
     # ── Pass 2: notes → quiz bank, in batches of 10 (text-only, no video) ─────
     quiz: list = []
     notes_text = json.dumps(notes)
-    batch_size  = 10
+    batch_size  = 5  # smaller batches = less chance of truncation
 
     while len(quiz) < req.num_questions:
         remaining = min(batch_size, req.num_questions - len(quiz))
@@ -142,15 +152,14 @@ def generate_lesson(req: GenerateRequest):
         quiz_prompt = (
             f"From these lesson notes, write exactly {remaining} multiple-choice quiz questions. "
             "Use ONLY facts stated in the notes — do not invent anything. "
-            "Each item must be a JSON object with keys: "
-            "question (string), options (array of 4 strings), "
-            "correct_index (int 0–3), explanation (string). "
-            f"Do NOT repeat these already-generated questions: {already_asked}. "
-            f"Notes: {notes_text}. "
-            "Return ONLY a valid JSON array of objects, no extra text."
+            "Return a JSON array where each element has these keys: "
+            "question (string), options (array of exactly 4 strings), "
+            "correct_index (integer 0-3), explanation (string). "
+            f"Do NOT repeat: {already_asked}. "
+            f"Notes: {notes_text}"
         )
         try:
-            chunk_raw = _call_with_retry(client, [quiz_prompt])
+            chunk_raw = _call_with_retry(client, [quiz_prompt], json_mode=True)
             chunk = _strip_json(chunk_raw)
             if not isinstance(chunk, list) or not chunk:
                 logger.warning("Quiz batch returned empty/invalid JSON — stopping early")

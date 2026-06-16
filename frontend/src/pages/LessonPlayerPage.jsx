@@ -8,14 +8,13 @@ function shuffle(arr) {
 
 function getEmbedUrl(url) {
   if (!url) return null
-  // Already an embed URL
   if (url.includes('youtube.com/embed/')) return url.split('?')[0] + '?rel=0'
-  // youtu.be short link
-  const short = url.match(/youtu\.be\/([^?&]+)/)
-  if (short) return `https://www.youtube.com/embed/${short[1]}?rel=0`
-  // Standard watch URL (?v= or &v=)
-  const watch = url.match(/[?&]v=([^&]+)/)
-  if (watch) return `https://www.youtube.com/embed/${watch[1]}?rel=0`
+  const short   = url.match(/youtu\.be\/([^?&]+)/)
+  if (short)   return `https://www.youtube.com/embed/${short[1]}?rel=0`
+  const shorts  = url.match(/youtube\.com\/shorts\/([^?&]+)/)
+  if (shorts)  return `https://www.youtube.com/embed/${shorts[1]}?rel=0`
+  const watch   = url.match(/[?&]v=([^&]+)/)
+  if (watch)   return `https://www.youtube.com/embed/${watch[1]}?rel=0`
   return null
 }
 
