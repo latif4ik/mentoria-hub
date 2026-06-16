@@ -11,24 +11,24 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-# google-genai SDK; key is read from env, NEVER from the browser
 try:
     from google import genai
+    from google.genai import types as genai_types
 except ImportError:
     genai = None
+    genai_types = None
 
 app = FastAPI(title="Mentoria Hub AI Service")
 
-# Allow the React dev server to call this during the hackathon.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],          # tighten before any real deployment
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-MODEL = "gemini-2.5-flash"  # free-tier workhorse; swap if Google renames it
+MODEL = "gemini-2.0-flash"
 
 
 class GenerateRequest(BaseModel):
@@ -57,9 +57,27 @@ def _call_with_retry(client, contents, retries=3):
 
 
 def _strip_json(text: str):
-    """Models often wrap JSON in ```json fences. Clean before parsing."""
-    text = text.strip().removeprefix("```json").removeprefix("```").removesuffix("```")
-    return json.loads(text)
+    """Models often wrap JSON in ```json fences. Strip before parsing."""
+    text = text.strip()
+    # Remove common fence patterns
+    for prefix in ("```json", "```"):
+        if text.startswith(prefix):
+            text = text[len(prefix):]
+    if text.endswith("```"):
+        text = text[:-3]
+    return json.loads(text.strip())
+
+
+def _make_video_contents(prompt: str, youtube_url: str):
+    """Build multimodal contents list with a YouTube video part."""
+    video_part = genai_types.Part(
+        file_data=genai_types.FileData(
+            file_uri=youtube_url,
+            mime_type="video/*",
+        )
+    )
+    text_part = genai_types.Part(text=prompt)
+    return [genai_types.Content(parts=[text_part, video_part])]
 
 
 @app.get("/health")
@@ -75,37 +93,42 @@ def generate_lesson(req: GenerateRequest):
     """
     client = _client()
 
-    # ---- Pass 1: video -> notes (the only call that processes the video) ----
+    # ── Pass 1: video → notes (the only call that touches the video) ──────────
     pass1_prompt = (
         "You are an educational content designer. Watch this lesson video and "
-        "produce a JSON object with: 'title' (short), 'summary' (5-8 sentences), "
-        "'key_points' (array of concise factual bullet strings), and "
+        "produce a JSON object with exactly these keys: "
+        "'title' (short descriptive title, string), "
+        "'summary' (5–8 sentence overview for students, string), "
+        "'key_points' (array of concise factual bullet strings), "
         "'outline' (array of {timestamp:'MM:SS', topic:string}). "
-        "Only use information actually present in the video. Return ONLY JSON."
+        "Only use information actually present in the video. "
+        "Return ONLY valid JSON, no extra text."
     )
-    notes_raw = _call_with_retry(
-        client,
-        [pass1_prompt, {"file_data": {"file_uri": req.youtube_url}}],
-    )
+    notes_raw = _call_with_retry(client, _make_video_contents(pass1_prompt, req.youtube_url))
     notes = _strip_json(notes_raw)
 
-    # ---- Pass 2: notes -> quiz bank, batched by 10 (no video reprocessing) ----
-    quiz = []
-    batch = 10
+    # ── Pass 2: notes → quiz bank, in batches of 10 (text-only, no video) ─────
+    quiz: list = []
     notes_text = json.dumps(notes)
+    batch_size  = 10
+
     while len(quiz) < req.num_questions:
-        remaining = min(batch, req.num_questions - len(quiz))
+        remaining = min(batch_size, req.num_questions - len(quiz))
+        already_asked = json.dumps([q["question"] for q in quiz])
         quiz_prompt = (
-            f"From these lesson notes, write {remaining} multiple-choice quiz "
-            "questions. Use ONLY facts in the notes; do not invent anything. "
-            "Each item: {question, options:[4 strings], correct_index:int, "
-            "explanation:string}. Avoid repeating earlier questions. "
-            f"Already asked: {json.dumps([q['question'] for q in quiz])}. "
-            f"Notes: {notes_text}. Return ONLY a JSON array."
+            f"From these lesson notes, write exactly {remaining} multiple-choice quiz questions. "
+            "Use ONLY facts stated in the notes — do not invent anything. "
+            "Each item must be a JSON object with keys: "
+            "question (string), options (array of 4 strings), "
+            "correct_index (int 0–3), explanation (string). "
+            f"Do NOT repeat these already-generated questions: {already_asked}. "
+            f"Notes: {notes_text}. "
+            "Return ONLY a valid JSON array of objects, no extra text."
         )
         try:
-            chunk = _strip_json(_call_with_retry(client, [quiz_prompt]))
-            if not chunk:
+            chunk_raw = _call_with_retry(client, [quiz_prompt])
+            chunk = _strip_json(chunk_raw)
+            if not isinstance(chunk, list) or not chunk:
                 break
             quiz.extend(chunk)
         except Exception:

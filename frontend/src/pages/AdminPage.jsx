@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
+import { generateLesson } from '../api'
 
 // ─── Enums ────────────────────────────────────────────────────
 const CATEGORIES = ['Competition', 'Scholarship', 'Internship', 'Summer School', 'Olympiad']
@@ -36,6 +37,20 @@ const LESSON_FIELDS = [
   { key: 'summary',   label: 'Summary',       type: 'textarea' },
   { key: 'content',   label: 'Lesson Notes',  type: 'textarea' },
 ]
+
+// Formats AI-returned notes into readable lesson content
+function formatNotes(notes) {
+  const lines = []
+  if (notes.key_points?.length) {
+    lines.push('Key Points:')
+    notes.key_points.forEach(p => lines.push(`• ${p}`))
+  }
+  if (notes.outline?.length) {
+    lines.push('', 'Outline:')
+    notes.outline.forEach(o => lines.push(`${o.timestamp} — ${o.topic}`))
+  }
+  return lines.join('\n')
+}
 
 // ─── Shared input component ───────────────────────────────────
 function Field({ def, value, onChange }) {
@@ -128,6 +143,126 @@ function Modal({ title, fields, initial, onSave, onClose, saving }) {
           <button
             onClick={handleSave}
             disabled={saving}
+            className="gradient-btn text-sm font-semibold text-white px-6 py-2 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+          >
+            {saving ? 'Saving…' : 'Save'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Lesson modal (with AI generation) ───────────────────────
+function LessonModal({ initial, onSave, onClose, saving }) {
+  const [form, setForm] = useState(() => {
+    const base = {}
+    LESSON_FIELDS.forEach(f => { base[f.key] = initial?.[f.key] ?? '' })
+    return base
+  })
+  const [generating, setGenerating] = useState(false)
+  const [genError, setGenError]     = useState(null)
+  const [genQuiz, setGenQuiz]       = useState(null)
+
+  function set(key, val) { setForm(prev => ({ ...prev, [key]: val })) }
+
+  async function handleGenerate() {
+    setGenerating(true)
+    setGenError(null)
+    setGenQuiz(null)
+    try {
+      const result = await generateLesson(form.video_url)
+      const { notes, quiz } = result
+      setForm(prev => ({
+        ...prev,
+        title:   prev.title || notes.title || prev.title,
+        summary: notes.summary || prev.summary,
+        content: formatNotes(notes),
+      }))
+      setGenQuiz(quiz || [])
+    } catch (e) {
+      setGenError(e.message || 'AI generation failed. Make sure the backend is running and the video is public.')
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  function handleSave() {
+    const data = { ...form, position: parseInt(form.position) || 1 }
+    onSave(data, genQuiz)
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-surface-container rounded-2xl shadow-2xl border border-outline-variant/20 w-full max-w-lg max-h-[90vh] flex flex-col">
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-outline-variant/10 shrink-0">
+          <h3 className="text-base font-semibold text-on-surface">{initial ? 'Edit Lesson' : 'New Lesson'}</h3>
+          <button onClick={onClose} className="text-on-surface-variant hover:text-on-surface transition-colors">
+            <span className="material-symbols-outlined text-[22px]">close</span>
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="overflow-y-auto flex-1 px-6 py-5 space-y-4">
+          {LESSON_FIELDS.map(f => (
+            <div key={f.key}>
+              <label className="block text-xs font-semibold text-on-surface-variant mb-1.5 uppercase tracking-wide">
+                {f.label}{f.required && <span className="text-error ml-0.5">*</span>}
+              </label>
+              <Field def={f} value={form[f.key]} onChange={v => set(f.key, v)} />
+
+              {/* AI generate button — shown under video_url */}
+              {f.key === 'video_url' && (
+                <div className="mt-2 space-y-1.5">
+                  <button
+                    type="button"
+                    onClick={handleGenerate}
+                    disabled={!form.video_url || generating}
+                    className="flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-lg border border-mint/40 text-mint hover:bg-mint/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {generating ? (
+                      <>
+                        <div className="w-3 h-3 border border-mint border-t-transparent rounded-full animate-spin" />
+                        Generating… (30–60 s)
+                      </>
+                    ) : (
+                      <>
+                        <span className="material-symbols-outlined text-[14px]">auto_awesome</span>
+                        Generate with AI
+                      </>
+                    )}
+                  </button>
+
+                  {genError && (
+                    <p className="text-xs text-error">{genError}</p>
+                  )}
+                  {genQuiz && genQuiz.length > 0 && (
+                    <p className="text-xs text-secondary flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                      {genQuiz.length} quiz questions ready to save
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {f.hint && f.type !== 'textarea' && f.type !== 'select' && f.key !== 'video_url' && (
+                <p className="text-xs text-on-surface-variant mt-1">{f.hint}</p>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Footer */}
+        <div className="flex justify-end gap-3 px-6 py-4 border-t border-outline-variant/10 shrink-0">
+          <button onClick={onClose} className="text-sm font-medium text-on-surface-variant hover:text-on-surface px-4 py-2 transition-colors">
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving || generating}
             className="gradient-btn text-sm font-semibold text-white px-6 py-2 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
           >
             {saving ? 'Saving…' : 'Save'}
@@ -272,11 +407,11 @@ function OpportunitiesTab() {
 
 // ─── Lessons panel (inside Courses tab) ──────────────────────
 function LessonsPanel({ course, onBack }) {
-  const [items, setItems]   = useState([])
+  const [items, setItems]     = useState([])
   const [loading, setLoading] = useState(true)
-  const [modal, setModal]   = useState(null)
+  const [modal, setModal]     = useState(null) // null | { item }
   const [confirm, setConfirm] = useState(null)
-  const [saving, setSaving] = useState(false)
+  const [saving, setSaving]   = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -287,14 +422,35 @@ function LessonsPanel({ course, onBack }) {
 
   useEffect(() => { load() }, [load])
 
-  async function save(data) {
+  // generatedQuiz is the AI quiz bank (may be null if not generated)
+  async function save(data, generatedQuiz) {
     setSaving(true)
-    const payload = { ...data, course_id: course.id }
-    if (modal.item?.id) {
-      await supabase.from('lessons').update(payload).eq('id', modal.item.id)
+    let lessonId = modal.item?.id
+
+    if (lessonId) {
+      await supabase.from('lessons').update({ ...data, course_id: course.id }).eq('id', lessonId)
     } else {
-      await supabase.from('lessons').insert(payload)
+      const { data: newLesson } = await supabase.from('lessons')
+        .insert({ ...data, course_id: course.id })
+        .select('id')
+        .single()
+      lessonId = newLesson?.id
     }
+
+    // Save quiz bank if the admin generated one
+    if (generatedQuiz?.length && lessonId) {
+      await supabase.from('quiz_questions').delete().eq('lesson_id', lessonId)
+      await supabase.from('quiz_questions').insert(
+        generatedQuiz.map(q => ({
+          lesson_id:     lessonId,
+          question:      q.question,
+          options:       q.options,
+          correct_index: q.correct_index,
+          explanation:   q.explanation || '',
+        }))
+      )
+    }
+
     setSaving(false)
     setModal(null)
     load()
@@ -352,9 +508,7 @@ function LessonsPanel({ course, onBack }) {
       )}
 
       {modal && (
-        <Modal
-          title={modal.item ? 'Edit Lesson' : 'New Lesson'}
-          fields={LESSON_FIELDS}
+        <LessonModal
           initial={modal.item}
           onSave={save}
           onClose={() => setModal(null)}
