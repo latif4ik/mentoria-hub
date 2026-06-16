@@ -7,9 +7,13 @@ and is called directly from the React frontend.
 import os
 import json
 import time
+import logging
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 try:
     from google import genai
@@ -51,6 +55,7 @@ def _call_with_retry(client, contents, retries=3):
             resp = client.models.generate_content(model=MODEL, contents=contents)
             return resp.text
         except Exception as e:
+            logger.error("Gemini attempt %d/%d failed: %s", attempt + 1, retries, e)
             if attempt == retries - 1:
                 raise HTTPException(502, f"Gemini call failed: {e}")
             time.sleep(2 ** attempt)
@@ -78,6 +83,9 @@ def _make_video_contents(prompt: str, youtube_url: str):
     )
     text_part = genai_types.Part(text=prompt)
     return [genai_types.Content(parts=[text_part, video_part])]
+
+
+logger.info("Mentoria Hub AI service starting. Gemini key loaded: %s", bool(GEMINI_API_KEY))
 
 
 @app.get("/health")

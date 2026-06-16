@@ -9,7 +9,11 @@ export async function generateLesson(youtubeUrl, numQuestions = 50) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ youtube_url: youtubeUrl, num_questions: numQuestions }),
   })
-  if (!res.ok) throw new Error(`AI service error: ${res.status}`)
+  if (!res.ok) {
+    let detail = `AI service error ${res.status}`
+    try { const body = await res.json(); detail = body.detail || detail } catch {}
+    throw new Error(detail)
+  }
   return res.json()
 }
 
