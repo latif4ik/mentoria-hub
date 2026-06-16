@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { useTheme } from '../hooks/useTheme'
 
 const NAV = [
   { to: '/dashboard',     icon: 'grid_view',             label: 'Dashboard'     },
@@ -30,7 +31,7 @@ function NavItem({ item, active, onClick }) {
   )
 }
 
-function SidebarContent({ displayName, isAdmin, pathname, onClose, onSignOut }) {
+function SidebarContent({ displayName, isAdmin, pathname, onClose, onSignOut, dark, onToggle }) {
   const items = [...NAV, ...(isAdmin ? [ADMIN_NAV] : [])]
   const initial = displayName?.[0]?.toUpperCase() ?? '?'
 
@@ -70,6 +71,15 @@ function SidebarContent({ displayName, isAdmin, pathname, onClose, onSignOut }) 
           </div>
         </div>
         <button
+          onClick={onToggle}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all duration-150"
+        >
+          <span className="material-symbols-outlined text-[22px] shrink-0">
+            {dark ? 'light_mode' : 'dark_mode'}
+          </span>
+          {dark ? 'Light mode' : 'Dark mode'}
+        </button>
+        <button
           onClick={onSignOut}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-on-surface-variant hover:bg-surface-container-high hover:text-error transition-all duration-150"
         >
@@ -83,8 +93,9 @@ function SidebarContent({ displayName, isAdmin, pathname, onClose, onSignOut }) 
 }
 
 export default function AppShell({ session, profile, onSignOut, children }) {
-  const [open, setOpen] = useState(false)
-  const { pathname }    = useLocation()
+  const [open, setOpen]  = useState(false)
+  const { pathname }     = useLocation()
+  const { dark, toggle } = useTheme()
 
   const displayName = session?.user?.email?.split('@')[0] ?? ''
   const isAdmin     = profile?.role === 'admin'
@@ -94,7 +105,9 @@ export default function AppShell({ session, profile, onSignOut, children }) {
     isAdmin,
     pathname,
     onSignOut,
-    onClose: () => setOpen(false),
+    onClose:   () => setOpen(false),
+    dark,
+    onToggle:  toggle,
   }
 
   return (

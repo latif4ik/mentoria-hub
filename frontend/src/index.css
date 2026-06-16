@@ -2,26 +2,118 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─── Global ─────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   Design tokens — RGB triples (no #) so Tailwind opacity works.
+   Light mode is :root default; html.dark overrides to dark.
+   ══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Surface scale */
+  --c-surface:                    245 248 255;
+  --c-surface-dim:                216 218 229;
+  --c-surface-bright:             245 248 255;
+  --c-surface-container-lowest:   255 255 255;
+  --c-surface-container-low:      238 241 251;
+  --c-surface-container:          232 235 245;
+  --c-surface-container-high:     226 229 239;
+  --c-surface-container-highest:  220 223 233;
+  --c-surface-variant:            220 226 240;
+  /* Content */
+  --c-on-surface:                  25  28  32;
+  --c-on-surface-variant:          67  71  78;
+  /* Outline */
+  --c-outline:                    115 119 127;
+  --c-outline-variant:            195 199 207;
+  /* Primary (deep blue on light) */
+  --c-primary:                      0  92 153;
+  --c-primary-container:          209 228 255;
+  --c-on-primary:                 255 255 255;
+  --c-on-primary-container:         0  29  53;
+  /* Secondary (deep mint on light) */
+  --c-secondary:                    0 110  87;
+  --c-secondary-container:        111 247 214;
+  --c-on-secondary:               255 255 255;
+  --c-on-secondary-container:       0  32  26;
+  /* Tertiary (deep amber on light) */
+  --c-tertiary:                   124  88   0;
+  --c-tertiary-container:         255 222 166;
+  --c-on-tertiary:                255 255 255;
+  --c-on-tertiary-container:       38  25   0;
+  /* Error */
+  --c-error:                      186  26  26;
+  --c-error-container:            255 218 214;
+  --c-on-error:                   255 255 255;
+  /* Component helpers */
+  --glass-bg:   rgba(255, 255, 255, 0.78);
+  --glass-border: rgba(0, 0, 0, 0.09);
+  --card-bg:    #ffffff;
+  --card-border: rgba(0, 0, 0, 0.07);
+}
+
+html.dark {
+  /* Surface scale */
+  --c-surface:                     16  20  24;
+  --c-surface-dim:                 16  20  24;
+  --c-surface-bright:              53  58  63;
+  --c-surface-container-lowest:    10  15  19;
+  --c-surface-container-low:       24  28  33;
+  --c-surface-container:           28  32  37;
+  --c-surface-container-high:      38  42  47;
+  --c-surface-container-highest:   49  53  58;
+  --c-surface-variant:             49  53  58;
+  /* Content */
+  --c-on-surface:                 223 227 233;
+  --c-on-surface-variant:         191 199 210;
+  /* Outline */
+  --c-outline:                    137 145 156;
+  --c-outline-variant:             63  72  81;
+  /* Primary (sky blue on dark) */
+  --c-primary:                    149 204 255;
+  --c-primary-container:           46 155 230;
+  --c-on-primary:                   0  51  83;
+  --c-on-primary-container:         0  48  77;
+  /* Secondary (bright mint on dark) */
+  --c-secondary:                   65 231 190;
+  --c-secondary-container:          0 203 164;
+  --c-on-secondary:                 0  56  43;
+  --c-on-secondary-container:       0  79  63;
+  /* Tertiary (amber on dark) */
+  --c-tertiary:                   255 185  96;
+  --c-tertiary-container:         208 132   0;
+  --c-on-tertiary:                 71  42   0;
+  --c-on-tertiary-container:       67  39   0;
+  /* Error */
+  --c-error:                      255 180 171;
+  --c-error-container:            147   0  10;
+  --c-on-error:                   105   0   5;
+  /* Component helpers */
+  --glass-bg:   rgba(22, 34, 53, 0.75);
+  --glass-border: rgba(248, 250, 252, 0.10);
+  --card-bg:    #162235;
+  --card-border: rgba(248, 250, 252, 0.05);
+}
+
+/* ─── Global ──────────────────────────────────────────────── */
 body {
   margin: 0;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background-color: #101418;
-  color: #dfe3e9;
+  background-color: rgb(var(--c-surface));
+  color: rgb(var(--c-on-surface));
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* ─── Reusable surface / glass styles ──────────────────────── */
+/* ─── Reusable surface / glass styles ─────────────────────── */
 .glass-panel {
-  background: rgba(22, 34, 53, 0.75);
+  background: var(--glass-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(248, 250, 252, 0.1);
+  border: 1px solid var(--glass-border);
 }
 
 .level-1-card {
-  background-color: #162235;
-  border: 1px solid rgba(248, 250, 252, 0.05);
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
 }
 
 .gradient-btn {
@@ -32,7 +124,7 @@ body {
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
 }
 
-/* ─── Material Symbols sizing ───────────────────────────────── */
+/* ─── Material Symbols ────────────────────────────────────── */
 .material-symbols-outlined {
   font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
   line-height: 1;
@@ -40,47 +132,37 @@ body {
   user-select: none;
 }
 
-/* ─── Scroll-reveal animations ──────────────────────────────── */
-
-/* Base hidden states */
+/* ─── Scroll-reveal animations ────────────────────────────── */
 .anim-fade-up {
   opacity: 0;
   transform: translateY(48px);
   transition: opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
               transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
 }
-
 .anim-fade-left {
-  /* enters from the right */
   opacity: 0;
   transform: translateX(48px);
   transition: opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
               transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
 }
-
 .anim-fade-right {
-  /* enters from the left */
   opacity: 0;
   transform: translateX(-48px);
   transition: opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
               transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
 }
-
 .anim-scale-up {
   opacity: 0;
   transform: scale(0.93);
   transition: opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
               transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
 }
-
-/* Onboarding step enter animation */
 @keyframes stepFadeIn {
   from { opacity: 0; transform: translateX(16px); }
   to   { opacity: 1; transform: translateX(0); }
 }
 .step-enter { animation: stepFadeIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) both; }
 
-/* Visible state — applied by IntersectionObserver */
 .anim-fade-up.is-visible,
 .anim-fade-left.is-visible,
 .anim-fade-right.is-visible,

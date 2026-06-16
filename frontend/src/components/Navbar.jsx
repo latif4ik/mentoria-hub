@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTheme } from '../hooks/useTheme'
 
 function LogoMark() {
   return (
@@ -12,7 +13,8 @@ function LogoMark() {
 }
 
 export default function Navbar({ onLoginClick }) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen]  = useState(false)
+  const { dark, toggle } = useTheme()
 
   return (
     <nav className="bg-surface/80 backdrop-blur-xl sticky top-0 z-50 border-b border-outline-variant/10">
@@ -26,6 +28,9 @@ export default function Navbar({ onLoginClick }) {
 
         {/* Desktop CTAs */}
         <div className="hidden md:flex items-center gap-4">
+          <button onClick={toggle} className="text-on-surface-variant hover:text-on-surface transition-colors p-1.5 rounded-lg hover:bg-surface-container" aria-label="Toggle theme">
+            <span className="material-symbols-outlined text-[22px]">{dark ? 'light_mode' : 'dark_mode'}</span>
+          </button>
           <button
             onClick={onLoginClick}
             className="text-sm font-medium text-on-surface hover:text-primary transition-colors"

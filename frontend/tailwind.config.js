@@ -1,51 +1,52 @@
-/** Mentoria Hub — full design token palette */
+/** Mentoria Hub — full design token palette (CSS-variable driven for light/dark) */
 export default {
   content: ['./index.html', './src/**/*.{js,jsx}'],
   darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        navy: '#0F1A2A',
+        // Fixed accent colours (same in both modes)
+        navy:  '#0F1A2A',
         brand: '#2E9BE6',
-        mint: '#27D8B0',
-        // Surface scale
-        surface: '#101418',
-        'surface-dim': '#101418',
-        'surface-bright': '#353a3f',
-        'surface-container-lowest': '#0a0f13',
-        'surface-container-low': '#181c21',
-        'surface-container': '#1c2025',
-        'surface-container-high': '#262a2f',
-        'surface-container-highest': '#31353a',
-        'surface-variant': '#31353a',
-        // Content on surface
-        'on-surface': '#dfe3e9',
-        'on-surface-variant': '#bfc7d2',
-        // Outline
-        outline: '#89919c',
-        'outline-variant': '#3f4851',
-        // Primary (sky blue)
-        primary: '#95ccff',
-        'primary-container': '#2e9be6',
-        'on-primary': '#003353',
-        'on-primary-container': '#00304d',
-        // Secondary (mint/cyan)
-        secondary: '#41e7be',
-        'secondary-container': '#00cba4',
-        'on-secondary': '#00382b',
-        'on-secondary-container': '#004f3f',
-        // Tertiary (amber)
-        tertiary: '#ffb960',
-        'tertiary-container': '#d08400',
-        'on-tertiary': '#472a00',
-        'on-tertiary-container': '#432700',
-        // Error
-        error: '#ffb4ab',
-        'error-container': '#93000a',
-        'on-error': '#690005',
-        // Misc
-        background: '#101418',
-        'on-background': '#dfe3e9',
+        mint:  '#27D8B0',
+        // ── Semantic surface scale ─────────────────────────────
+        surface:                     'rgb(var(--c-surface)                    / <alpha-value>)',
+        'surface-dim':               'rgb(var(--c-surface-dim)               / <alpha-value>)',
+        'surface-bright':            'rgb(var(--c-surface-bright)            / <alpha-value>)',
+        'surface-container-lowest':  'rgb(var(--c-surface-container-lowest)  / <alpha-value>)',
+        'surface-container-low':     'rgb(var(--c-surface-container-low)     / <alpha-value>)',
+        'surface-container':         'rgb(var(--c-surface-container)         / <alpha-value>)',
+        'surface-container-high':    'rgb(var(--c-surface-container-high)    / <alpha-value>)',
+        'surface-container-highest': 'rgb(var(--c-surface-container-highest) / <alpha-value>)',
+        'surface-variant':           'rgb(var(--c-surface-variant)           / <alpha-value>)',
+        // ── Content ───────────────────────────────────────────
+        'on-surface':         'rgb(var(--c-on-surface)         / <alpha-value>)',
+        'on-surface-variant': 'rgb(var(--c-on-surface-variant) / <alpha-value>)',
+        // ── Outline ───────────────────────────────────────────
+        outline:         'rgb(var(--c-outline)         / <alpha-value>)',
+        'outline-variant': 'rgb(var(--c-outline-variant) / <alpha-value>)',
+        // ── Primary ───────────────────────────────────────────
+        primary:             'rgb(var(--c-primary)             / <alpha-value>)',
+        'primary-container': 'rgb(var(--c-primary-container)   / <alpha-value>)',
+        'on-primary':        'rgb(var(--c-on-primary)          / <alpha-value>)',
+        'on-primary-container': 'rgb(var(--c-on-primary-container) / <alpha-value>)',
+        // ── Secondary ─────────────────────────────────────────
+        secondary:             'rgb(var(--c-secondary)             / <alpha-value>)',
+        'secondary-container': 'rgb(var(--c-secondary-container)   / <alpha-value>)',
+        'on-secondary':        'rgb(var(--c-on-secondary)          / <alpha-value>)',
+        'on-secondary-container': 'rgb(var(--c-on-secondary-container) / <alpha-value>)',
+        // ── Tertiary ──────────────────────────────────────────
+        tertiary:             'rgb(var(--c-tertiary)             / <alpha-value>)',
+        'tertiary-container': 'rgb(var(--c-tertiary-container)   / <alpha-value>)',
+        'on-tertiary':        'rgb(var(--c-on-tertiary)          / <alpha-value>)',
+        'on-tertiary-container': 'rgb(var(--c-on-tertiary-container) / <alpha-value>)',
+        // ── Error ─────────────────────────────────────────────
+        error:            'rgb(var(--c-error)            / <alpha-value>)',
+        'error-container':'rgb(var(--c-error-container)  / <alpha-value>)',
+        'on-error':        'rgb(var(--c-on-error)         / <alpha-value>)',
+        // ── Background alias ──────────────────────────────────
+        background:    'rgb(var(--c-surface) / <alpha-value>)',
+        'on-background': 'rgb(var(--c-on-surface) / <alpha-value>)',
       },
       backgroundImage: {
         'brand-gradient': 'linear-gradient(135deg, #2E9BE6 0%, #27D8B0 100%)',
