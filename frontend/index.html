@@ -1,13 +1,13 @@
 <!doctype html>
 <html lang="en" class="dark">
-  <!-- Set theme before React mounts to avoid flash -->
-  <script>
-    (function(){
-      var t = localStorage.getItem('theme');
-      if (t === 'light') document.documentElement.classList.remove('dark');
-    })();
-  </script>
   <head>
+    <!-- Set theme before React mounts to avoid flash of wrong mode -->
+    <script>
+      (function(){
+        var t = localStorage.getItem('theme');
+        if (t === 'light') document.documentElement.classList.remove('dark');
+      })();
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mentoria Hub</title>
