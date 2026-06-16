@@ -93,12 +93,13 @@ export default function Onboarding({ userId, onComplete }) {
     if (!canAdvance()) return
     if (isLast) {
       setSaving(true)
-      await supabase.from('profiles').update({
+      await supabase.from('profiles').upsert({
+        id:        userId,
         grade:     answers.grade,
         interests: answers.interests,
         subjects:  answers.subjects,
         goals:     answers.goals,
-      }).eq('id', userId)
+      })
       setSaving(false)
       onComplete(answers)
     } else {
