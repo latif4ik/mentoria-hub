@@ -7,6 +7,9 @@ import AuthModal from './components/AuthModal'
 import Onboarding from './components/Onboarding'
 import LandingPage from './pages/LandingPage'
 import OpportunitiesPage from './pages/OpportunitiesPage'
+import CoursesPage from './pages/CoursesPage'
+import CourseDetailPage from './pages/CourseDetailPage'
+import LessonPlayerPage from './pages/LessonPlayerPage'
 
 export default function App() {
   const [session, setSession]             = useState(null)
@@ -47,6 +50,15 @@ export default function App() {
             <Route path="/" element={<LandingPage onGetStarted={openAuth} />} />
             <Route path="/opportunities" element={
               <OpportunitiesPage session={session} onLoginRequired={openAuth} />
+            } />
+            <Route path="/courses" element={
+              <CoursesPage session={session} />
+            } />
+            <Route path="/courses/:courseId" element={
+              <CourseDetailPage session={session} onLoginRequired={openAuth} />
+            } />
+            <Route path="/courses/:courseId/lessons/:lessonId" element={
+              <LessonPlayerPage session={session} onLoginRequired={openAuth} />
             } />
           </Routes>
         </div>
