@@ -1,21 +1,19 @@
 import { useState, useEffect } from 'react'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { supabase } from './supabaseClient'
 import Navbar from './components/Navbar'
-import HeroSection from './components/HeroSection'
-import OpportunitiesSection from './components/OpportunitiesSection'
-import CoursesSection from './components/CoursesSection'
-import DashboardSection from './components/DashboardSection'
 import Footer from './components/Footer'
 import AuthModal from './components/AuthModal'
 import Onboarding from './components/Onboarding'
+import LandingPage from './pages/LandingPage'
+import OpportunitiesPage from './pages/OpportunitiesPage'
 
 export default function App() {
-  const [session, setSession]           = useState(null)
-  const [showAuth, setShowAuth]         = useState(false)
-  const [profile, setProfile]           = useState(null)
+  const [session, setSession]             = useState(null)
+  const [showAuth, setShowAuth]           = useState(false)
+  const [profile, setProfile]             = useState(null)
   const [profileLoaded, setProfileLoaded] = useState(false)
 
-  // Auth session listener
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session))
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
@@ -25,44 +23,45 @@ export default function App() {
     return () => subscription.unsubscribe()
   }, [])
 
-  // Fetch profile whenever session changes
   useEffect(() => {
     if (!session) return
     setProfileLoaded(false)
-    supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', session.user.id)
-      .single()
+    supabase.from('profiles').select('*').eq('id', session.user.id).single()
       .then(({ data }) => { setProfile(data); setProfileLoaded(true) })
   }, [session])
 
-  // Show onboarding when logged in but grade not yet set
+  const openAuth = () => setShowAuth(true)
   const needsOnboarding = session && profileLoaded && (!profile || profile.grade === null)
 
   return (
-    <div className="bg-surface min-h-screen text-on-surface">
-      <Navbar
-        session={session}
-        onLoginClick={() => setShowAuth(true)}
-        onSignOut={() => supabase.auth.signOut()}
-      />
-      <main>
-        <HeroSection onGetStarted={() => setShowAuth(true)} />
-        <OpportunitiesSection />
-        <CoursesSection />
-        <DashboardSection />
-      </main>
-      <Footer />
-
-      {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
-
-      {needsOnboarding && (
-        <Onboarding
-          userId={session.user.id}
-          onComplete={(answers) => setProfile(prev => ({ ...prev, ...answers }))}
+    <BrowserRouter>
+      <div className="bg-surface min-h-screen text-on-surface flex flex-col">
+        <Navbar
+          session={session}
+          onLoginClick={openAuth}
+          onSignOut={() => supabase.auth.signOut()}
         />
-      )}
-    </div>
+
+        <div className="flex-1">
+          <Routes>
+            <Route path="/" element={<LandingPage onGetStarted={openAuth} />} />
+            <Route path="/opportunities" element={
+              <OpportunitiesPage session={session} onLoginRequired={openAuth} />
+            } />
+          </Routes>
+        </div>
+
+        <Footer />
+
+        {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+
+        {needsOnboarding && (
+          <Onboarding
+            userId={session.user.id}
+            onComplete={(answers) => setProfile(prev => ({ ...prev, ...answers }))}
+          />
+        )}
+      </div>
+    </BrowserRouter>
   )
 }
