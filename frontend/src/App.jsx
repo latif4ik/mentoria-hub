@@ -11,6 +11,7 @@ import CoursesPage from './pages/CoursesPage'
 import CourseDetailPage from './pages/CourseDetailPage'
 import LessonPlayerPage from './pages/LessonPlayerPage'
 import DashboardPage from './pages/DashboardPage'
+import AdminPage from './pages/AdminPage'
 
 export default function App() {
   const [session, setSession]             = useState(null)
@@ -42,6 +43,7 @@ export default function App() {
       <div className="bg-surface min-h-screen text-on-surface flex flex-col">
         <Navbar
           session={session}
+          profile={profile}
           onLoginClick={openAuth}
           onSignOut={() => supabase.auth.signOut()}
         />
@@ -63,6 +65,9 @@ export default function App() {
             } />
             <Route path="/dashboard" element={
               <DashboardPage session={session} onLoginRequired={openAuth} />
+            } />
+            <Route path="/admin" element={
+              <AdminPage session={session} profile={profile} />
             } />
           </Routes>
         </div>

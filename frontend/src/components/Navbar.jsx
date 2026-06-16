@@ -19,12 +19,13 @@ const NAV_LINKS = [
   { label: 'About',         to: null },
 ]
 
-export default function Navbar({ session, onLoginClick, onSignOut }) {
+export default function Navbar({ session, profile, onLoginClick, onSignOut }) {
   const [open, setOpen] = useState(false)
   const { pathname }    = useLocation()
 
   const user        = session?.user
   const displayName = user?.email?.split('@')[0] ?? ''
+  const isAdmin     = profile?.role === 'admin'
 
   return (
     <nav className="bg-surface/80 backdrop-blur-xl sticky top-0 z-50 border-b border-outline-variant/10">
@@ -53,6 +54,11 @@ export default function Navbar({ session, onLoginClick, onSignOut }) {
         <div className="hidden md:flex items-center gap-4">
           {user ? (
             <>
+              {isAdmin && (
+                <Link to="/admin" className={`text-sm font-medium transition-colors ${pathname === '/admin' ? 'text-primary' : 'text-on-surface-variant hover:text-primary'}`}>
+                  Admin
+                </Link>
+              )}
               <Link to="/dashboard" className="text-sm text-on-surface-variant hover:text-primary transition-colors">
                 Hi, <span className="text-on-surface font-medium">{displayName}</span>
               </Link>
@@ -104,6 +110,9 @@ export default function Navbar({ session, onLoginClick, onSignOut }) {
           <div className="flex items-center gap-4 pt-2">
             {user ? (
               <>
+                {isAdmin && (
+                  <Link to="/admin" onClick={() => setOpen(false)} className="text-sm font-semibold text-tertiary">Admin</Link>
+                )}
                 <Link to="/dashboard" onClick={() => setOpen(false)} className="text-sm text-on-surface-variant hover:text-primary transition-colors">{displayName}</Link>
                 <button onClick={onSignOut} className="text-sm font-medium text-error">
                   Sign Out
