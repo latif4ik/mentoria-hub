@@ -10,6 +10,7 @@ import OpportunitiesPage from './pages/OpportunitiesPage'
 import CoursesPage from './pages/CoursesPage'
 import CourseDetailPage from './pages/CourseDetailPage'
 import LessonPlayerPage from './pages/LessonPlayerPage'
+import DashboardPage from './pages/DashboardPage'
 
 export default function App() {
   const [session, setSession]             = useState(null)
@@ -59,6 +60,9 @@ export default function App() {
             } />
             <Route path="/courses/:courseId/lessons/:lessonId" element={
               <LessonPlayerPage session={session} onLoginRequired={openAuth} />
+            } />
+            <Route path="/dashboard" element={
+              <DashboardPage session={session} onLoginRequired={openAuth} />
             } />
           </Routes>
         </div>

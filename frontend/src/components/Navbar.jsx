@@ -53,9 +53,9 @@ export default function Navbar({ session, onLoginClick, onSignOut }) {
         <div className="hidden md:flex items-center gap-4">
           {user ? (
             <>
-              <span className="text-sm text-on-surface-variant">
+              <Link to="/dashboard" className="text-sm text-on-surface-variant hover:text-primary transition-colors">
                 Hi, <span className="text-on-surface font-medium">{displayName}</span>
-              </span>
+              </Link>
               <button
                 onClick={onSignOut}
                 className="text-sm font-medium text-on-surface-variant hover:text-error transition-colors"
@@ -104,11 +104,11 @@ export default function Navbar({ session, onLoginClick, onSignOut }) {
           <div className="flex items-center gap-4 pt-2">
             {user ? (
               <>
-                <span className="text-sm text-on-surface-variant">{displayName}</span>
+                <Link to="/dashboard" onClick={() => setOpen(false)} className="text-sm text-on-surface-variant hover:text-primary transition-colors">{displayName}</Link>
                 <button onClick={onSignOut} className="text-sm font-medium text-error">
                   Sign Out
                 </button>
-              </>
+</>
             ) : (
               <>
                 <button
