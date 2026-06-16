@@ -32,7 +32,7 @@ app.add_middleware(
 )
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-MODEL = "gemini-2.0-flash"
+MODEL = "gemini-1.5-flash"
 
 
 class GenerateRequest(BaseModel):
@@ -48,8 +48,22 @@ def _client():
     return genai.Client(api_key=GEMINI_API_KEY)
 
 
+def _retry_delay(exc) -> float:
+    """Extract retryDelay seconds from a Gemini 429 body, else use backoff."""
+    try:
+        body = json.loads(str(exc)) if isinstance(exc, str) else exc.args[0] if exc.args else {}
+        if isinstance(body, dict):
+            for detail in body.get("error", {}).get("details", []):
+                rd = detail.get("retryDelay", "")
+                if rd:
+                    return float(rd.rstrip("s")) + 2
+    except Exception:
+        pass
+    return 45.0  # safe default for exhausted free-tier quota
+
+
 def _call_with_retry(client, contents, retries=3):
-    """Free tier returns 429 under bursts; retry with backoff."""
+    """Free tier returns 429 under bursts; retry respecting Gemini's retryDelay hint."""
     for attempt in range(retries):
         try:
             resp = client.models.generate_content(model=MODEL, contents=contents)
@@ -58,7 +72,9 @@ def _call_with_retry(client, contents, retries=3):
             logger.error("Gemini attempt %d/%d failed: %s", attempt + 1, retries, e)
             if attempt == retries - 1:
                 raise HTTPException(502, f"Gemini call failed: {e}")
-            time.sleep(2 ** attempt)
+            wait = _retry_delay(e)
+            logger.info("Waiting %.0fs before retry…", wait)
+            time.sleep(wait)
 
 
 def _strip_json(text: str):
