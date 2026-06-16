@@ -41,6 +41,15 @@ export default function App() {
   }, [session])
 
   const openAuth = () => setShowAuth(true)
+
+  async function handleSignOut() {
+    await supabase.auth.signOut()
+    // Explicitly clear state rather than waiting for onAuthStateChange
+    setSession(null)
+    setProfile(null)
+    setProfileLoaded(false)
+  }
+
   const needsOnboarding = session && profileLoaded && (!profile || profile.grade === null)
 
   // Prevent a flash of the public layout while restoring an existing session
@@ -56,7 +65,7 @@ export default function App() {
     <BrowserRouter>
       {session ? (
         /* ── Authenticated app shell ─────────────────────────── */
-        <AppShell session={session} profile={profile} onSignOut={() => supabase.auth.signOut()}>
+        <AppShell session={session} profile={profile} onSignOut={handleSignOut}>
           <Routes>
             {/* Landing page → dashboard for logged-in users */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
