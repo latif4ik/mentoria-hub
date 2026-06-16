@@ -153,9 +153,13 @@ def generate_lesson(req: GenerateRequest):
             chunk_raw = _call_with_retry(client, [quiz_prompt])
             chunk = _strip_json(chunk_raw)
             if not isinstance(chunk, list) or not chunk:
+                logger.warning("Quiz batch returned empty/invalid JSON — stopping early")
                 break
             quiz.extend(chunk)
-        except Exception:
-            break  # stop gracefully rather than crash mid-generation
+            logger.info("Quiz bank progress: %d/%d questions", len(quiz), req.num_questions)
+        except Exception as e:
+            logger.warning("Quiz generation stopped early: %s", e)
+            break
 
-    return {"notes": notes, "quiz": quiz[: req.num_questions]}
+    logger.info("Generation complete. notes keys=%s quiz_count=%d", list(notes.keys()), len(quiz))
+    return {"notes": notes, "quiz": quiz[: req.num_questions], "quiz_count": len(quiz)}

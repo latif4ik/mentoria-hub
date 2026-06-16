@@ -245,6 +245,12 @@ function LessonModal({ initial, onSave, onClose, saving }) {
                       {genQuiz.length} quiz questions ready to save
                     </p>
                   )}
+                  {genQuiz && genQuiz.length === 0 && !genError && (
+                    <p className="text-xs text-tertiary flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[14px]">warning</span>
+                      Notes generated but quiz hit quota — try again or add billing to your Gemini key
+                    </p>
+                  )}
                 </div>
               )}
 
