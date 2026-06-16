@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTheme } from '../hooks/useTheme'
+import ProfileModal from './ProfileModal'
 
 const NAV = [
   { to: '/dashboard',     icon: 'grid_view',             label: 'Dashboard'     },
@@ -31,9 +32,37 @@ function NavItem({ item, active, onClick }) {
   )
 }
 
-function SidebarContent({ displayName, isAdmin, pathname, onClose, onSignOut, dark, onToggle }) {
+function Avatar({ profile, session, size = 8 }) {
+  const initial = (
+    profile?.full_name?.[0] ||
+    session?.user?.email?.[0] ||
+    '?'
+  ).toUpperCase()
+  const px = size * 4 // size-8 → 32px
+
+  if (profile?.avatar_url) {
+    return (
+      <img
+        src={profile.avatar_url}
+        alt="Profile"
+        className={`rounded-full object-cover shrink-0`}
+        style={{ width: px, height: px }}
+      />
+    )
+  }
+  return (
+    <div
+      className="rounded-full gradient-btn flex items-center justify-center shrink-0"
+      style={{ width: px, height: px }}
+    >
+      <span className={`font-bold text-white ${size >= 10 ? 'text-base' : 'text-xs'}`}>{initial}</span>
+    </div>
+  )
+}
+
+function SidebarContent({ session, profile, isAdmin, pathname, onClose, onSignOut, onOpenProfile, dark, onToggle }) {
   const items = [...NAV, ...(isAdmin ? [ADMIN_NAV] : [])]
-  const initial = displayName?.[0]?.toUpperCase() ?? '?'
+  const displayName = profile?.full_name || session?.user?.email?.split('@')[0] || ''
 
   return (
     <div className="flex flex-col h-full">
@@ -59,17 +88,23 @@ function SidebarContent({ displayName, isAdmin, pathname, onClose, onSignOut, da
         })}
       </nav>
 
-      {/* User + sign out */}
+      {/* User + actions */}
       <div className="px-3 pb-4 pt-3 border-t border-outline-variant/10 space-y-0.5 shrink-0">
-        <div className="flex items-center gap-3 px-3 py-2 mb-1">
-          <div className="w-8 h-8 rounded-full gradient-btn flex items-center justify-center shrink-0">
-            <span className="text-xs font-bold text-white">{initial}</span>
-          </div>
-          <div className="min-w-0">
+        {/* Clickable profile row */}
+        <button
+          onClick={onOpenProfile}
+          className="w-full flex items-center gap-3 px-3 py-2 mb-1 rounded-xl hover:bg-surface-container-high transition-all duration-150 text-left group"
+        >
+          <Avatar profile={profile} session={session} size={8} />
+          <div className="min-w-0 flex-1">
             <p className="text-sm font-medium text-on-surface truncate">{displayName}</p>
             {isAdmin && <p className="text-[11px] text-tertiary font-semibold">Admin</p>}
           </div>
-        </div>
+          <span className="material-symbols-outlined text-[16px] text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+            edit
+          </span>
+        </button>
+
         <button
           onClick={onToggle}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all duration-150"
@@ -92,22 +127,24 @@ function SidebarContent({ displayName, isAdmin, pathname, onClose, onSignOut, da
   )
 }
 
-export default function AppShell({ session, profile, onSignOut, children }) {
-  const [open, setOpen]  = useState(false)
+export default function AppShell({ session, profile, onSignOut, onProfileUpdate, children }) {
+  const [open,           setOpen]           = useState(false)
+  const [showProfile,    setShowProfile]     = useState(false)
   const { pathname }     = useLocation()
   const { dark, toggle } = useTheme()
 
-  const displayName = session?.user?.email?.split('@')[0] ?? ''
-  const isAdmin     = profile?.role === 'admin'
+  const isAdmin = profile?.role === 'admin'
 
   const sidebarProps = {
-    displayName,
+    session,
+    profile,
     isAdmin,
     pathname,
     onSignOut,
-    onClose:   () => setOpen(false),
+    onClose:       () => setOpen(false),
+    onOpenProfile: () => setOpen(false) || setShowProfile(true),
     dark,
-    onToggle:  toggle,
+    onToggle:      toggle,
   }
 
   return (
@@ -139,7 +176,7 @@ export default function AppShell({ session, profile, onSignOut, children }) {
           <button onClick={() => setOpen(true)} className="text-on-surface-variant hover:text-on-surface transition-colors">
             <span className="material-symbols-outlined text-[26px]">menu</span>
           </button>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-1">
             <div className="h-7 w-7 rounded-md gradient-btn flex items-center justify-center">
               <svg viewBox="0 0 40 40" width="16" height="16" fill="none">
                 <path d="M8 30V12l12 10 12-10v18" stroke="white" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round"/>
@@ -148,6 +185,10 @@ export default function AppShell({ session, profile, onSignOut, children }) {
             </div>
             <span className="text-sm font-bold text-on-surface">Mentoria Hub</span>
           </div>
+          {/* Avatar shortcut on mobile top bar */}
+          <button onClick={() => setShowProfile(true)} className="shrink-0">
+            <Avatar profile={profile} session={session} size={8} />
+          </button>
         </header>
 
         {/* Page content */}
@@ -156,6 +197,17 @@ export default function AppShell({ session, profile, onSignOut, children }) {
         </div>
 
       </div>
+
+      {/* ── Profile modal ─────────────────────────────────────── */}
+      {showProfile && (
+        <ProfileModal
+          session={session}
+          profile={profile}
+          onSave={onProfileUpdate}
+          onClose={() => setShowProfile(false)}
+        />
+      )}
+
     </div>
   )
 }

@@ -65,7 +65,12 @@ export default function App() {
     <BrowserRouter>
       {session ? (
         /* ── Authenticated app shell ─────────────────────────── */
-        <AppShell session={session} profile={profile} onSignOut={handleSignOut}>
+        <AppShell
+          session={session}
+          profile={profile}
+          onSignOut={handleSignOut}
+          onProfileUpdate={data => setProfile(data)}
+        >
           <Routes>
             {/* Landing page → dashboard for logged-in users */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
