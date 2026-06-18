@@ -3,7 +3,7 @@
 // Set VITE_API_URL in .env locally and in the Vercel dashboard for production.
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
-export async function generateLesson(youtubeUrl, numQuestions = 10) {
+export async function generateLesson(youtubeUrl, numQuestions = 50) {
   const res = await fetch(`${API_URL}/generate-lesson`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
