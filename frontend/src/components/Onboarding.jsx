@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../supabaseClient'
+import LogoMark from './LogoMark'
 import { useLocale } from '../i18n/LocaleContext'
 
 const STEPS = [
@@ -150,12 +151,7 @@ export default function Onboarding({ userId, onComplete }) {
 
         {/* Logo */}
         <div className="flex items-center gap-2 mb-10">
-          <div className="h-8 w-8 rounded-lg gradient-btn flex items-center justify-center shrink-0">
-            <svg viewBox="0 0 40 40" width="20" height="20" fill="none">
-              <path d="M8 30V12l12 10 12-10v18" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-              <circle cx="20" cy="10" r="3" fill="white"/>
-            </svg>
-          </div>
+          <LogoMark size={32} />
           <span className="text-base font-bold text-on-surface">Mentoria Hub</span>
         </div>
 

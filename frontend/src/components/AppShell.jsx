@@ -4,6 +4,7 @@ import { useTheme } from '../hooks/useTheme'
 import { useLocale } from '../i18n/LocaleContext'
 import LanguageSwitcher from './LanguageSwitcher'
 import ProfileModal from './ProfileModal'
+import LogoMark from './LogoMark'
 
 const NAV = [
   { to: '/dashboard',     icon: 'grid_view',             label: 'nav.dashboard'     },
@@ -82,12 +83,7 @@ function SidebarContent({ session, profile, isAdmin, pathname, onClose, onSignOu
 
       {/* Logo */}
       <div className="px-5 h-16 flex items-center gap-3 border-b border-outline-variant/10 shrink-0">
-        <div className="h-8 w-8 rounded-lg gradient-btn flex items-center justify-center shrink-0">
-          <svg viewBox="0 0 40 40" width="20" height="20" fill="none">
-            <path d="M8 30V12l12 10 12-10v18" stroke="white" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round"/>
-            <circle cx="20" cy="10" r="3" fill="white"/>
-          </svg>
-        </div>
+        <LogoMark size={32} />
         <span className="text-base font-bold text-on-surface">Mentoria Hub</span>
       </div>
 
@@ -192,12 +188,7 @@ export default function AppShell({ session, profile, onSignOut, onProfileUpdate,
             <span className="material-symbols-outlined text-[26px]">menu</span>
           </button>
           <div className="flex items-center gap-2 flex-1">
-            <div className="h-7 w-7 rounded-md gradient-btn flex items-center justify-center">
-              <svg viewBox="0 0 40 40" width="16" height="16" fill="none">
-                <path d="M8 30V12l12 10 12-10v18" stroke="white" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round"/>
-                <circle cx="20" cy="10" r="3" fill="white"/>
-              </svg>
-            </div>
+            <LogoMark size={28} />
             <span className="text-sm font-bold text-on-surface">Mentoria Hub</span>
           </div>
           {/* Avatar shortcut on mobile top bar */}

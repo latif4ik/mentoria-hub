@@ -1,16 +1,6 @@
 import { useLocale } from '../i18n/LocaleContext'
 import LanguageSwitcher from './LanguageSwitcher'
-
-function LogoMark() {
-  return (
-    <div className="h-9 w-9 rounded-lg gradient-btn flex items-center justify-center shrink-0">
-      <svg viewBox="0 0 40 40" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M8 30V12l12 10 12-10v18" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-        <circle cx="20" cy="10" r="3" fill="white"/>
-      </svg>
-    </div>
-  )
-}
+import LogoMark from './LogoMark'
 
 export default function Footer({ onMentorSignup }) {
   const { t } = useLocale()
@@ -27,7 +17,7 @@ export default function Footer({ onMentorSignup }) {
         {/* Brand column */}
         <div className="col-span-2 sm:col-span-1 space-y-4">
           <div className="flex items-center gap-3">
-            <LogoMark />
+            <LogoMark size={36} />
             <span className="text-base font-bold text-on-surface">Mentoria Hub</span>
           </div>
           <p className="text-sm text-on-surface-variant leading-relaxed max-w-[200px]">
