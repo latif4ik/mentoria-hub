@@ -1,3 +1,6 @@
+import { useLocale } from '../i18n/LocaleContext'
+import LanguageSwitcher from './LanguageSwitcher'
+
 function LogoMark() {
   return (
     <div className="h-9 w-9 rounded-lg gradient-btn flex items-center justify-center shrink-0">
@@ -9,13 +12,14 @@ function LogoMark() {
   )
 }
 
-const LINKS = {
-  Platform: ['Opportunities', 'Courses', 'For Students'],
-  Resources: ['Terms of Service', 'Privacy Policy', 'Help Center'],
-  Contact: ['abdulatifimarov@gmail.com', 'Instagram', 'Telegram'],
-}
-
 export default function Footer() {
+  const { t } = useLocale()
+
+  const LINKS = {
+    [t('footer.platform')]: [t('footer.opps'), t('footer.courses'), t('footer.forStudents')],
+    [t('footer.resources')]: [t('footer.terms'), t('footer.privacy'), t('footer.help')],
+    [t('footer.contact')]: ['abdulatifimarov@gmail.com', 'Instagram', 'Telegram'],
+  }
   return (
     <footer className="border-t border-outline-variant/10 py-16 px-6 max-w-desktop mx-auto">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-10">
@@ -27,27 +31,16 @@ export default function Footer() {
             <span className="text-base font-bold text-on-surface">Mentoria Hub</span>
           </div>
           <p className="text-sm text-on-surface-variant leading-relaxed max-w-[200px]">
-            Discover opportunities and grow with self-paced courses.
+            {t('footer.tagline')}
           </p>
 
           {/* Language switcher */}
-          <div className="flex gap-1 mt-2">
-            {['EN', 'RU', 'KZ'].map((lang, i) => (
-              <button
-                key={lang}
-                className={`text-xs font-semibold px-3 py-1.5 rounded transition-colors ${
-                  i === 0
-                    ? 'bg-primary-container/20 text-primary'
-                    : 'text-on-surface-variant hover:text-primary'
-                }`}
-              >
-                {lang}
-              </button>
-            ))}
+          <div className="mt-2">
+            <LanguageSwitcher />
           </div>
 
           <p className="text-xs text-on-surface-variant pt-2">
-            © 2026 Mentoria Hub. All rights reserved.
+            {t('footer.rights')}
           </p>
         </div>
 

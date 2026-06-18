@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import { supabase } from '../supabaseClient'
+import { useLocale } from '../i18n/LocaleContext'
 
 const INTERESTS = [
   { value: 'STEM',          label: 'STEM' },
@@ -57,6 +58,7 @@ function ChipGroup({ label, options, selected, onChange }) {
 }
 
 export default function ProfileModal({ session, profile, onSave, onClose }) {
+  const { t } = useLocale()
   const nameParts = (profile?.full_name || '').split(' ')
 
   const [firstName, setFirstName] = useState(nameParts[0] || '')
@@ -135,7 +137,7 @@ export default function ProfileModal({ session, profile, onSave, onClose }) {
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-outline-variant/10 shrink-0">
-          <h2 className="text-base font-semibold text-on-surface">Edit Profile</h2>
+          <h2 className="text-base font-semibold text-on-surface">{t('profile.edit')}</h2>
           <button onClick={onClose} className="text-on-surface-variant hover:text-on-surface transition-colors">
             <span className="material-symbols-outlined text-[22px]">close</span>
           </button>
@@ -170,14 +172,14 @@ export default function ProfileModal({ session, profile, onSave, onClose }) {
               </button>
             </div>
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
-            <p className="text-xs text-on-surface-variant">Click the camera icon to change your photo</p>
+            <p className="text-xs text-on-surface-variant">{t('profile.changePhoto')}</p>
           </div>
 
           {/* Name fields */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wide mb-1.5">
-                First Name
+                {t('profile.firstName')}
               </label>
               <input
                 type="text"
@@ -189,7 +191,7 @@ export default function ProfileModal({ session, profile, onSave, onClose }) {
             </div>
             <div>
               <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wide mb-1.5">
-                Last Name
+                {t('profile.lastName')}
               </label>
               <input
                 type="text"
@@ -203,7 +205,7 @@ export default function ProfileModal({ session, profile, onSave, onClose }) {
 
           {/* Grade */}
           <div>
-            <p className="text-xs font-semibold text-on-surface-variant uppercase tracking-wide mb-2">Grade</p>
+            <p className="text-xs font-semibold text-on-surface-variant uppercase tracking-wide mb-2">{t('profile.grade')}</p>
             <div className="flex gap-2">
               {GRADES.map(g => (
                 <button
@@ -223,9 +225,9 @@ export default function ProfileModal({ session, profile, onSave, onClose }) {
           </div>
 
           {/* Preference chips */}
-          <ChipGroup label="Interests" options={INTERESTS} selected={interests} onChange={setInterests} />
-          <ChipGroup label="Subjects"  options={SUBJECTS}  selected={subjects}  onChange={setSubjects} />
-          <ChipGroup label="Goals"     options={GOALS}     selected={goals}     onChange={setGoals} />
+          <ChipGroup label={t('profile.interests')} options={INTERESTS} selected={interests} onChange={setInterests} />
+          <ChipGroup label={t('profile.subjects')}  options={SUBJECTS}  selected={subjects}  onChange={setSubjects} />
+          <ChipGroup label={t('profile.goals')}     options={GOALS}     selected={goals}     onChange={setGoals} />
 
           {error && (
             <p className="text-xs text-error bg-error/10 border border-error/20 rounded-lg px-3 py-2">{error}</p>
@@ -238,14 +240,14 @@ export default function ProfileModal({ session, profile, onSave, onClose }) {
             onClick={onClose}
             className="text-sm font-medium text-on-surface-variant hover:text-on-surface px-4 py-2 transition-colors"
           >
-            Cancel
+            {t('profile.cancel')}
           </button>
           <button
             onClick={handleSave}
             disabled={saving || uploading}
             className="gradient-btn text-sm font-semibold text-white px-6 py-2 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
           >
-            {saving ? 'Saving…' : 'Save Changes'}
+            {saving ? t('profile.saving') : t('profile.save')}
           </button>
         </div>
       </div>

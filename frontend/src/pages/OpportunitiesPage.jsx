@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '../supabaseClient'
+import { useLocale } from '../i18n/LocaleContext'
 
 // ─── Color maps ───────────────────────────────────────────────
 const CATEGORY_COLOR = {
@@ -16,18 +17,20 @@ function getDaysLeft(deadline) {
 }
 
 function DeadlineBadge({ deadline }) {
+  const { t } = useLocale()
   const days = getDaysLeft(deadline)
   const date = new Date(deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 
-  if (days < 0)  return <span className="text-xs text-outline">Closed</span>
-  if (days === 0) return <span className="text-xs font-bold text-error flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">schedule</span>Closes today!</span>
-  if (days <= 3)  return <span className="text-xs font-bold text-error flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">schedule</span>{days}d left</span>
-  if (days <= 7)  return <span className="text-xs font-semibold text-tertiary flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">schedule</span>{days}d left</span>
+  if (days < 0)  return <span className="text-xs text-outline">{t('opportunities.closed')}</span>
+  if (days === 0) return <span className="text-xs font-bold text-error flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">schedule</span>{t('opportunities.closesToday')}</span>
+  if (days <= 3)  return <span className="text-xs font-bold text-error flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">schedule</span>{days}{t('opportunities.dLeft')}</span>
+  if (days <= 7)  return <span className="text-xs font-semibold text-tertiary flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">schedule</span>{days}{t('opportunities.dLeft')}</span>
   return <span className="text-xs text-on-surface-variant">{date}</span>
 }
 
 // ─── Card ─────────────────────────────────────────────────────
 function OpportunityCard({ opp, isSaved, onToggleSave }) {
+  const { t } = useLocale()
   const days = getDaysLeft(opp.deadline)
   const isCritical = days >= 0 && days <= 3
   const color = CATEGORY_COLOR[opp.category] || '#95ccff'
@@ -40,7 +43,7 @@ function OpportunityCard({ opp, isSaved, onToggleSave }) {
         <div className="bg-error/8 border-b border-error/15 px-4 py-1.5 flex items-center gap-1.5">
           <span className="material-symbols-outlined text-error text-[15px]">warning</span>
           <span className="text-xs font-semibold text-error">
-            {days === 0 ? 'Closes today!' : `Closing in ${days} day${days !== 1 ? 's' : ''}!`}
+            {days === 0 ? t('opportunities.closesToday') : `${t('opportunities.closingIn')} ${days} ${days !== 1 ? t('opportunities.days') : t('opportunities.day')}!`}
           </span>
         </div>
       )}
@@ -89,7 +92,7 @@ function OpportunityCard({ opp, isSaved, onToggleSave }) {
               >favorite</span>
             </button>
             <button className="text-xs font-semibold flex items-center gap-0.5 hover:opacity-70 transition-opacity" style={{ color: '#2e9be6' }}>
-              Apply
+              {t('opportunities.apply')}
               <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
             </button>
           </div>
@@ -144,6 +147,7 @@ const FORMATS    = ['Online', 'Offline', 'Hybrid']
 
 // ─── Page ─────────────────────────────────────────────────────
 export default function OpportunitiesPage({ session, onLoginRequired }) {
+  const { t } = useLocale()
   const [opportunities, setOpportunities] = useState([])
   const [saved, setSaved]                 = useState(new Set())
   const [loading, setLoading]             = useState(true)
@@ -203,14 +207,14 @@ export default function OpportunitiesPage({ session, onLoginRequired }) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-on-surface">Opportunities</h1>
-          <p className="text-on-surface-variant mt-1.5">Competitions, scholarships, internships and more — all in one place.</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-on-surface">{t('opportunities.title')}</h1>
+          <p className="text-on-surface-variant mt-1.5">{t('opportunities.subtitle')}</p>
         </div>
         <div className="relative w-full sm:w-72 shrink-0">
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px] pointer-events-none">search</span>
           <input
             type="text"
-            placeholder="Search opportunities…"
+            placeholder={t('opportunities.search')}
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="w-full bg-surface-container border border-outline-variant rounded-xl pl-10 pr-4 py-2.5 text-sm text-on-surface placeholder:text-outline focus:outline-none focus:border-primary transition-colors"
@@ -221,19 +225,19 @@ export default function OpportunitiesPage({ session, onLoginRequired }) {
       {/* Filters */}
       <div className="glass-panel rounded-2xl p-4 mb-6 space-y-3">
         <div className="flex items-start gap-3 flex-wrap">
-          <span className="text-xs font-semibold text-on-surface-variant pt-1.5 w-16 shrink-0">Category</span>
+          <span className="text-xs font-semibold text-on-surface-variant pt-1.5 w-16 shrink-0">{t('opportunities.category')}</span>
           <div className="flex gap-2 flex-wrap flex-1">
             {CATEGORIES.map(c => <Chip key={c} label={c} active={filters.category === c} onClick={() => toggleFilter('category', c)} />)}
           </div>
         </div>
         <div className="flex items-start gap-3 flex-wrap">
-          <span className="text-xs font-semibold text-on-surface-variant pt-1.5 w-16 shrink-0">Field</span>
+          <span className="text-xs font-semibold text-on-surface-variant pt-1.5 w-16 shrink-0">{t('opportunities.field')}</span>
           <div className="flex gap-2 flex-wrap flex-1">
             {DIRECTIONS.map(d => <Chip key={d} label={d} active={filters.direction === d} onClick={() => toggleFilter('direction', d)} />)}
           </div>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
-          <span className="text-xs font-semibold text-on-surface-variant w-16 shrink-0">Format</span>
+          <span className="text-xs font-semibold text-on-surface-variant w-16 shrink-0">{t('opportunities.format')}</span>
           <div className="flex gap-2 flex-wrap flex-1">
             {FORMATS.map(f => <Chip key={f} label={f} active={filters.format === f} onClick={() => toggleFilter('format', f)} />)}
           </div>
@@ -243,7 +247,7 @@ export default function OpportunitiesPage({ session, onLoginRequired }) {
               className="text-xs font-medium text-on-surface-variant hover:text-error transition-colors flex items-center gap-1 ml-auto"
             >
               <span className="material-symbols-outlined text-[14px]">close</span>
-              Clear all
+              {t('opportunities.clearAll')}
             </button>
           )}
         </div>
@@ -252,7 +256,7 @@ export default function OpportunitiesPage({ session, onLoginRequired }) {
       {/* Count */}
       {!loading && (
         <p className="text-sm text-on-surface-variant mb-5">
-          {filtered.length} {filtered.length === 1 ? 'opportunity' : 'opportunities'} found
+          {filtered.length} {filtered.length === 1 ? t('opportunities.opportunity') : t('opportunities.opportunities_plural')} {t('opportunities.found')}
         </p>
       )}
 
@@ -272,8 +276,8 @@ export default function OpportunitiesPage({ session, onLoginRequired }) {
             : (
               <div className="col-span-full flex flex-col items-center justify-center py-24 text-center gap-3">
                 <span className="material-symbols-outlined text-[48px] text-outline">search_off</span>
-                <p className="text-on-surface font-medium">No opportunities match your filters</p>
-                <p className="text-sm text-on-surface-variant">Try removing a filter or clearing the search</p>
+                <p className="text-on-surface font-medium">{t('opportunities.noMatch')}</p>
+                <p className="text-sm text-on-surface-variant">{t('opportunities.tryRemoving')}</p>
               </div>
             )
         }

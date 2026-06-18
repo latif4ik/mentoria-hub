@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
+import { useLocale } from '../i18n/LocaleContext'
 
 function shuffle(arr) {
   return [...arr].sort(() => Math.random() - 0.5)
@@ -27,6 +28,7 @@ function timeToSeconds(ts) {
 
 // Renders text with MM:SS timestamps as clickable buttons
 function TimestampText({ text, onSeek }) {
+  const { t } = useLocale()
   if (!text) return null
   const parts = text.split(/((?:\d{1,2}:)?\d{1,2}:\d{2})/)
   return (
@@ -38,7 +40,7 @@ function TimestampText({ text, onSeek }) {
               key={i}
               onClick={() => onSeek(part)}
               className="inline-flex items-center gap-0.5 text-primary font-medium hover:underline cursor-pointer"
-              title={`Jump to ${part}`}
+              title={`${t('lesson.jumpTo')} ${part}`}
             >
               <span className="material-symbols-outlined text-[14px]">play_circle</span>
               {part}
@@ -53,6 +55,7 @@ function TimestampText({ text, onSeek }) {
 
 // ─── Quiz ─────────────────────────────────────────────────────
 function Quiz({ questions, lessonId, session, onLoginRequired, existingScore, onComplete }) {
+  const { t } = useLocale()
   const [selected, setSelected]   = useState({})
   const [submitted, setSubmitted] = useState(!!existingScore)
   const [score, setScore]         = useState(existingScore ?? null)
@@ -88,10 +91,10 @@ function Quiz({ questions, lessonId, session, onLoginRequired, existingScore, on
           </span>
           <div>
             <p className="text-sm font-bold text-on-surface">
-              {score >= 70 ? `Great job! You scored ${score}%` : `You scored ${score}% — keep practising!`}
+              {score >= 70 ? `${t('lesson.greatJob')} ${score}%` : `${t('lesson.scored')} ${score}% ${t('lesson.keepPractising')}`}
             </p>
             <p className="text-xs text-on-surface-variant">
-              {questions.filter((q, i) => selected[i] === q.correct_index).length} / {questions.length} correct
+              {questions.filter((q, i) => selected[i] === q.correct_index).length} / {questions.length} {t('lesson.correct')}
             </p>
           </div>
         </div>
@@ -153,7 +156,7 @@ function Quiz({ questions, lessonId, session, onLoginRequired, existingScore, on
           disabled={!allAnswered || saving}
           className="gradient-btn mt-8 text-sm font-semibold text-white px-8 py-3 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
         >
-          {saving ? 'Saving…' : 'Submit Quiz'}
+          {saving ? t('lesson.saving') : t('lesson.submitQuiz')}
           {!saving && <span className="material-symbols-outlined text-[18px]">check</span>}
         </button>
       )}
@@ -166,6 +169,7 @@ export default function LessonPlayerPage({ session, onLoginRequired }) {
   const { courseId, lessonId } = useParams()
   const navigate = useNavigate()
   const iframeRef = useRef(null)
+  const { t } = useLocale()
 
   const [lesson, setLesson]         = useState(null)
   const [course, setCourse]         = useState(null)
@@ -242,11 +246,11 @@ export default function LessonPlayerPage({ session, onLoginRequired }) {
 
       {/* Lesson nav */}
       <div className="flex items-center justify-between mb-6 text-xs text-on-surface-variant">
-        <span>Lesson {currentIdx + 1} of {allLessons.length}</span>
+        <span>{t('courses.lesson')} {currentIdx + 1} {t('lesson.of')} {allLessons.length}</span>
         {completed && (
           <span className="flex items-center gap-1 text-secondary font-semibold">
             <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-            Completed
+            {t('lesson.completed')}
           </span>
         )}
       </div>
@@ -268,7 +272,7 @@ export default function LessonPlayerPage({ session, onLoginRequired }) {
         ) : (
           <div className="w-full aspect-video bg-surface-container rounded-xl border border-outline-variant/20 flex flex-col items-center justify-center gap-2">
             <span className="material-symbols-outlined text-[48px] text-outline">play_circle</span>
-            <p className="text-sm text-on-surface-variant">No video for this lesson</p>
+            <p className="text-sm text-on-surface-variant">{t('lesson.noVideo')}</p>
           </div>
         )}
       </div>
@@ -276,7 +280,7 @@ export default function LessonPlayerPage({ session, onLoginRequired }) {
       {/* Summary */}
       {lesson.summary && (
         <div className="glass-panel rounded-xl p-5 mb-6">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-primary mb-2">Summary</h2>
+          <h2 className="text-xs font-bold uppercase tracking-widest text-primary mb-2">{t('lesson.summary')}</h2>
           <p className="text-sm text-on-surface-variant leading-relaxed">{lesson.summary}</p>
         </div>
       )}
@@ -284,7 +288,7 @@ export default function LessonPlayerPage({ session, onLoginRequired }) {
       {/* Content with clickable timestamps */}
       {lesson.content && (
         <div className="mb-10">
-          <h2 className="text-lg font-semibold text-on-surface mb-3">Lesson Notes</h2>
+          <h2 className="text-lg font-semibold text-on-surface mb-3">{t('lesson.notes')}</h2>
           <p className="text-sm text-on-surface-variant leading-relaxed whitespace-pre-line">
             <TimestampText text={lesson.content} onSeek={seekTo} />
           </p>
@@ -294,8 +298,8 @@ export default function LessonPlayerPage({ session, onLoginRequired }) {
       {/* Quiz */}
       {questions.length > 0 && (
         <div className="border-t border-outline-variant/10 pt-10 mb-10">
-          <h2 className="text-lg font-semibold text-on-surface mb-1">Quiz</h2>
-          <p className="text-sm text-on-surface-variant mb-6">{questions.length} questions — test your understanding</p>
+          <h2 className="text-lg font-semibold text-on-surface mb-1">{t('lesson.quiz')}</h2>
+          <p className="text-sm text-on-surface-variant mb-6">{questions.length} {t('lesson.questions')} — {t('lesson.testUnderstanding')}</p>
           <Quiz
             questions={questions}
             lessonId={lessonId}
@@ -326,7 +330,7 @@ export default function LessonPlayerPage({ session, onLoginRequired }) {
         ) : (
           <Link to={`/courses/${courseId}`}
             className="flex items-center gap-2 text-sm font-semibold text-secondary hover:opacity-80 transition-opacity">
-            Finish Course
+            {t('lesson.finishCourse')}
             <span className="material-symbols-outlined text-[18px]">check_circle</span>
           </Link>
         )}

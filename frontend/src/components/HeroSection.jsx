@@ -1,4 +1,5 @@
 import { useReveal } from '../hooks/useReveal'
+import { useLocale } from '../i18n/LocaleContext'
 
 function HeroMockup() {
   const ref = useReveal(200)
@@ -60,6 +61,7 @@ function HeroMockup() {
 }
 
 export default function HeroSection({ onGetStarted }) {
+  const { t } = useLocale()
   const textRef = useReveal(0)
 
   return (
@@ -73,28 +75,28 @@ export default function HeroSection({ onGetStarted }) {
         {/* Text block */}
         <div ref={textRef} className="anim-fade-right space-y-8 z-10">
           <h1 className="text-4xl sm:text-5xl lg:text-[52px] font-bold text-on-surface leading-tight tracking-tight">
-            Find opportunities and learn —{' '}
+            {t('hero.title1')}{' '}
             <span className="bg-brand-gradient bg-clip-text text-transparent">
-              all in one place
+              {t('hero.highlight')}
             </span>
-            , on your schedule.
+            {t('hero.title2')}
           </h1>
           <p className="text-lg text-on-surface-variant max-w-xl leading-relaxed">
-            No live classes required. Discover competitions, scholarships, and self-paced courses tailored for you.
+            {t('hero.subtitle')}
           </p>
           <div className="flex flex-wrap gap-4">
             <button
               onClick={onGetStarted}
               className="gradient-btn text-sm font-semibold text-white px-8 py-3.5 rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2"
             >
-              Find Opportunities
+              {t('hero.findOpps')}
               <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
             </button>
             <button
               onClick={onGetStarted}
               className="border border-primary-container text-primary-container text-sm font-semibold px-8 py-3.5 rounded-lg hover:bg-primary-container/10 transition-colors"
             >
-              Start Learning
+              {t('hero.startLearning')}
             </button>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../supabaseClient'
+import { useLocale } from '../i18n/LocaleContext'
 
 const STEPS = [
   {
@@ -58,9 +59,41 @@ const STEPS = [
 ]
 
 export default function Onboarding({ userId, onComplete }) {
+  const { t } = useLocale()
   const [step, setStep]     = useState(0)
   const [answers, setAnswers] = useState({ grade: null, interests: [], subjects: [], goals: [] })
   const [saving, setSaving]  = useState(false)
+
+  const stepText = {
+    grade:     { title: t('onboarding.gradeTitle'),     sub: t('onboarding.gradeSub') },
+    interests: { title: t('onboarding.interestsTitle'), sub: t('onboarding.interestsSub') },
+    subjects:  { title: t('onboarding.subjectsTitle'),  sub: t('onboarding.subjectsSub') },
+    goals:     { title: t('onboarding.goalsTitle'),     sub: t('onboarding.goalsSub') },
+  }
+
+  const labelMap = {
+    'Grade 8': t('onboarding.grade') + ' 8',
+    'Grade 9': t('onboarding.grade') + ' 9',
+    'Grade 10': t('onboarding.grade') + ' 10',
+    'Grade 11': t('onboarding.grade') + ' 11',
+    'STEM': t('onboarding.stem'),
+    'Business': t('onboarding.business'),
+    'Finance': t('onboarding.finance'),
+    'Coding': t('onboarding.coding'),
+    'Science': t('onboarding.science'),
+    'Social Impact': t('onboarding.socialImpact'),
+    'Math': t('onboarding.math'),
+    'English': t('onboarding.english'),
+    'Physics': t('onboarding.physics'),
+    'Biology': t('onboarding.biology'),
+    'Economics': t('onboarding.economics'),
+    'Computer Science': t('onboarding.cs'),
+    'SAT / IELTS Prep': t('onboarding.satIelts'),
+    'University Prep': t('onboarding.uniPrep'),
+    'Win Competitions': t('onboarding.competitions'),
+    'Get Scholarships': t('onboarding.scholarships'),
+    'Build Skills': t('onboarding.skills'),
+  }
 
   const current = STEPS[step]
   const isLast  = step === STEPS.length - 1
@@ -129,7 +162,7 @@ export default function Onboarding({ userId, onComplete }) {
         {/* Progress bar */}
         <div className="mb-8">
           <div className="flex justify-between text-xs text-on-surface-variant mb-2">
-            <span>Step {step + 1} of {STEPS.length}</span>
+            <span>{t('onboarding.step')} {step + 1} {t('onboarding.of')} {STEPS.length}</span>
             <span>{Math.round(progress)}%</span>
           </div>
           <div className="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
@@ -142,8 +175,8 @@ export default function Onboarding({ userId, onComplete }) {
 
         {/* Step content — key forces remount = fade-in animation */}
         <div key={step} className="step-enter">
-          <h1 className="text-2xl font-bold text-on-surface mb-1">{current.title}</h1>
-          <p className="text-sm text-on-surface-variant mb-7">{current.subtitle}</p>
+          <h1 className="text-2xl font-bold text-on-surface mb-1">{stepText[current.id].title}</h1>
+          <p className="text-sm text-on-surface-variant mb-7">{stepText[current.id].sub}</p>
 
           <div className={`flex flex-wrap gap-3 ${current.id === 'grade' ? 'grid grid-cols-2 sm:grid-cols-4' : ''}`}>
             {current.options.map(opt => {
@@ -163,7 +196,7 @@ export default function Onboarding({ userId, onComplete }) {
                       {opt.icon}
                     </span>
                   )}
-                  {opt.label}
+                  {labelMap[opt.label] || opt.label}
                 </button>
               )
             })}
@@ -178,7 +211,7 @@ export default function Onboarding({ userId, onComplete }) {
             className="text-sm font-medium text-on-surface-variant hover:text-on-surface transition-colors disabled:opacity-30 disabled:pointer-events-none flex items-center gap-1"
           >
             <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-            Back
+            {t('onboarding.back')}
           </button>
 
           <button
@@ -186,7 +219,7 @@ export default function Onboarding({ userId, onComplete }) {
             disabled={!canAdvance() || saving}
             className="gradient-btn text-sm font-semibold text-white px-8 py-3 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
           >
-            {saving ? 'Saving…' : isLast ? 'Get Started' : 'Next'}
+            {saving ? t('onboarding.saving') : isLast ? t('onboarding.getStarted') : t('onboarding.next')}
             {!saving && (
               <span className="material-symbols-outlined text-[18px]">
                 {isLast ? 'check' : 'arrow_forward'}

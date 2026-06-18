@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { supabase } from '../supabaseClient'
+import { useLocale } from '../i18n/LocaleContext'
 
 export default function AuthModal({ onClose }) {
+  const { t } = useLocale()
   const [mode, setMode] = useState('login') // 'login' | 'signup'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -50,10 +52,10 @@ export default function AuthModal({ onClose }) {
         {/* Header */}
         <div className="mb-6">
           <h2 className="text-xl font-bold text-on-surface">
-            {mode === 'login' ? 'Welcome back' : 'Create your account'}
+            {mode === 'login' ? t('auth.welcomeBack') : t('auth.createAccount')}
           </h2>
           <p className="text-sm text-on-surface-variant mt-1">
-            {mode === 'login' ? 'Sign in to your Mentoria Hub account.' : 'Join Mentoria Hub for free.'}
+            {mode === 'login' ? t('auth.signInSub') : t('auth.signUpSub')}
           </p>
         </div>
 
@@ -61,7 +63,7 @@ export default function AuthModal({ onClose }) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-on-surface-variant mb-1.5">
-              Email
+              {t('auth.email')}
             </label>
             <input
               type="email"
@@ -75,14 +77,14 @@ export default function AuthModal({ onClose }) {
 
           <div>
             <label className="block text-xs font-semibold text-on-surface-variant mb-1.5">
-              Password
+              {t('auth.password')}
             </label>
             <input
               type="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder={mode === 'signup' ? 'At least 6 characters' : '••••••••'}
+              placeholder={mode === 'signup' ? t('auth.atLeast6') : '••••••••'}
               minLength={6}
               className="w-full bg-surface-container border border-outline-variant rounded-lg px-4 py-3 text-sm text-on-surface placeholder:text-outline focus:outline-none focus:border-primary transition-colors"
             />
@@ -105,18 +107,18 @@ export default function AuthModal({ onClose }) {
             disabled={loading}
             className="gradient-btn w-full text-sm font-semibold text-white py-3 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
           >
-            {loading ? 'Please wait…' : mode === 'login' ? 'Sign In' : 'Create Account'}
+            {loading ? t('auth.pleaseWait') : mode === 'login' ? t('auth.signIn') : t('auth.createBtn')}
           </button>
         </form>
 
         {/* Toggle */}
         <p className="text-xs text-on-surface-variant text-center mt-5">
-          {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
+          {mode === 'login' ? t('auth.noAccount') : t('auth.hasAccount')}
           <button
             onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(''); setSuccess('') }}
             className="text-primary font-semibold hover:opacity-80 transition-opacity"
           >
-            {mode === 'login' ? 'Sign Up' : 'Sign In'}
+            {mode === 'login' ? t('auth.signUp') : t('auth.signIn')}
           </button>
         </p>
 

@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
+import { useLocale } from '../i18n/LocaleContext'
 
 const LEVEL_COLOR  = { Beginner: '#41e7be', Intermediate: '#ffb960', Advanced: '#ffb4ab' }
 const SUBJECT_ICON = { English: 'menu_book', Physics: 'science', Economics: 'bar_chart', default: 'school' }
 
 function CourseCard({ course, isEnrolled, completedLessonIds }) {
+  const { t } = useLocale()
   const lessons   = [...(course.lessons || [])].sort((a, b) => a.position - b.position)
   const total     = lessons.length
   const done      = lessons.filter(l => completedLessonIds.has(l.id)).length
@@ -43,7 +45,7 @@ function CourseCard({ course, isEnrolled, completedLessonIds }) {
       <p className="text-sm text-on-surface-variant leading-relaxed line-clamp-2 flex-1 mb-3">
         {course.description}
       </p>
-      <p className="text-xs text-on-surface-variant mb-3">{total} {total === 1 ? 'Lesson' : 'Lessons'}</p>
+      <p className="text-xs text-on-surface-variant mb-3">{total} {t('courses.lessons')}</p>
 
       {/* Progress bar (enrolled only) */}
       {isEnrolled && (
@@ -63,12 +65,12 @@ function CourseCard({ course, isEnrolled, completedLessonIds }) {
       <div className="mt-auto">
         {isEnrolled ? (
           <span className="gradient-btn text-xs font-semibold text-white px-4 py-2 rounded-lg inline-flex items-center gap-1">
-            {progress === 100 ? 'Review' : progress > 0 ? 'Continue' : 'Start'}
+            {progress === 100 ? t('courses.review') : progress > 0 ? t('courses.continue') : t('courses.start')}
             <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
           </span>
         ) : (
           <span className="border border-primary-container text-primary-container text-xs font-semibold px-4 py-2 rounded-lg inline-flex items-center gap-1">
-            Enroll
+            {t('courses.enroll')}
             <span className="material-symbols-outlined text-[14px]">add</span>
           </span>
         )}
@@ -91,6 +93,7 @@ function SkeletonCard() {
 }
 
 export default function CoursesPage({ session }) {
+  const { t } = useLocale()
   const [courses, setCourses]                   = useState([])
   const [enrolledIds, setEnrolledIds]           = useState(new Set())
   const [completedLessonIds, setCompletedLessonIds] = useState(new Set())
@@ -115,8 +118,8 @@ export default function CoursesPage({ session }) {
   return (
     <main className="max-w-desktop mx-auto px-6 py-12">
       <div className="mb-10">
-        <h1 className="text-3xl sm:text-4xl font-bold text-on-surface">Courses</h1>
-        <p className="text-on-surface-variant mt-1.5">Self-paced courses with video lessons and quizzes.</p>
+        <h1 className="text-3xl sm:text-4xl font-bold text-on-surface">{t('courses.title')}</h1>
+        <p className="text-on-surface-variant mt-1.5">{t('courses.subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">

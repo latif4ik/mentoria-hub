@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
+import { useLocale } from '../i18n/LocaleContext'
 
 const LEVEL_COLOR = { Beginner: '#41e7be', Intermediate: '#ffb960', Advanced: '#ffb4ab' }
 
 export default function CourseDetailPage({ session, onLoginRequired }) {
   const { courseId } = useParams()
   const navigate     = useNavigate()
+  const { t } = useLocale()
 
   const [course, setCourse]       = useState(null)
   const [lessons, setLessons]     = useState([])
@@ -69,7 +71,7 @@ export default function CourseDetailPage({ session, onLoginRequired }) {
       {/* Breadcrumb */}
       <Link to="/courses" className="flex items-center gap-1 text-sm text-on-surface-variant hover:text-primary transition-colors mb-8">
         <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-        All Courses
+        {t('courseDetail.allCourses')}
       </Link>
 
       {/* Header */}
@@ -83,7 +85,7 @@ export default function CourseDetailPage({ session, onLoginRequired }) {
             {course.subject}
           </span>
           <span className="text-xs text-on-surface-variant bg-surface-variant/40 px-2.5 py-1 rounded-full border border-outline-variant/20">
-            {lessons.length} Lessons
+            {lessons.length} {t('courseDetail.lessons')}
           </span>
         </div>
 
@@ -95,7 +97,7 @@ export default function CourseDetailPage({ session, onLoginRequired }) {
           <div className="space-y-3">
             <div>
               <div className="flex justify-between text-sm text-on-surface-variant mb-2">
-                <span>{totalDone}/{lessons.length} lessons completed</span>
+                <span>{totalDone}/{lessons.length} {t('courseDetail.lessonsCompleted')}</span>
                 <span>{progress}%</span>
               </div>
               <div className="w-full bg-surface-container h-2 rounded-full overflow-hidden">
@@ -108,14 +110,14 @@ export default function CourseDetailPage({ session, onLoginRequired }) {
                 to={`/courses/${courseId}/lessons/${nextLesson.id}`}
                 className="gradient-btn text-sm font-semibold text-white px-6 py-2.5 rounded-lg inline-flex items-center gap-2 hover:opacity-90 transition-opacity"
               >
-                {totalDone === 0 ? 'Start Course' : 'Continue'}
+                {totalDone === 0 ? t('courseDetail.startCourse') : t('courseDetail.continue')}
                 <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
               </Link>
             )}
             {progress === 100 && (
               <div className="flex items-center gap-2 text-secondary">
                 <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                <span className="text-sm font-semibold">Course completed!</span>
+                <span className="text-sm font-semibold">{t('courseDetail.completed')}</span>
               </div>
             )}
           </div>
@@ -125,7 +127,7 @@ export default function CourseDetailPage({ session, onLoginRequired }) {
             disabled={enrolling}
             className="gradient-btn text-sm font-semibold text-white px-8 py-3 rounded-lg inline-flex items-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
           >
-            {enrolling ? 'Enrolling…' : 'Enroll Now — It\'s Free'}
+            {enrolling ? t('courseDetail.enrolling') : t('courseDetail.enrollFree')}
             {!enrolling && <span className="material-symbols-outlined text-[18px]">add</span>}
           </button>
         )}
@@ -133,7 +135,7 @@ export default function CourseDetailPage({ session, onLoginRequired }) {
 
       {/* Lesson list */}
       <div>
-        <h2 className="text-lg font-semibold text-on-surface mb-4">Lessons</h2>
+        <h2 className="text-lg font-semibold text-on-surface mb-4">{t('courseDetail.lessons')}</h2>
         <div className="space-y-2">
           {lessons.map((lesson, idx) => {
             const done = completedIds.has(lesson.id)

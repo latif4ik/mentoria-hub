@@ -2,15 +2,16 @@ import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import { getRecommendations } from '../lib/recommend'
+import { useLocale } from '../i18n/LocaleContext'
 
 // ─── Helpers ──────────────────────────────────────────────────
 function getDaysLeft(deadline) {
   return Math.ceil((new Date(deadline) - new Date()) / 86400000)
 }
 
-function greeting() {
+function greeting(t) {
   const h = new Date().getHours()
-  return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'
+  return h < 12 ? t('dashboard.morning') : h < 17 ? t('dashboard.afternoon') : t('dashboard.evening')
 }
 
 const LEVEL_COLOR  = { Beginner: '#41e7be', Intermediate: '#ffb960', Advanced: '#ffb4ab' }
@@ -38,6 +39,7 @@ function Stat({ icon, value, label, color }) {
 
 // ─── Course row ───────────────────────────────────────────────
 function CourseRow({ course, completedIds }) {
+  const { t }      = useLocale()
   const lessons    = [...(course.lessons || [])].sort((a, b) => a.position - b.position)
   const total      = lessons.length
   const done       = lessons.filter(l => completedIds.has(l.id)).length
@@ -69,14 +71,14 @@ function CourseRow({ course, completedIds }) {
           to={`/courses/${course.id}/lessons/${nextLesson.id}`}
           className="shrink-0 gradient-btn text-xs font-semibold text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity flex items-center gap-1"
         >
-          {done === 0 ? 'Start' : 'Continue'}
+          {done === 0 ? t('dashboard.start') : t('dashboard.continue')}
           <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
         </Link>
       ) : (
         <Link to={`/courses/${course.id}`}
           className="shrink-0 text-xs font-semibold text-secondary flex items-center gap-1 hover:opacity-80 transition-opacity">
           <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-          Done
+          {t('dashboard.done')}
         </Link>
       )}
     </div>
@@ -85,6 +87,7 @@ function CourseRow({ course, completedIds }) {
 
 // ─── Saved opportunity row ────────────────────────────────────
 function SavedRow({ opp, onUnsave }) {
+  const { t }  = useLocale()
   const days  = getDaysLeft(opp.deadline)
   const color = CATEGORY_COLOR[opp.category] || '#95ccff'
   const deadlineColor = days <= 3 ? '#ffb4ab' : days <= 7 ? '#ffb960' : '#89919c'
@@ -98,7 +101,7 @@ function SavedRow({ opp, onUnsave }) {
       <p className="text-sm text-on-surface flex-1 truncate">{opp.title}</p>
       <span className="text-xs font-medium shrink-0 flex items-center gap-1" style={{ color: deadlineColor }}>
         {days <= 7 && <span className="material-symbols-outlined text-[13px]">schedule</span>}
-        {days <= 0 ? 'Closed' : days <= 1 ? 'Today!' : `${days}d`}
+        {days <= 0 ? t('dashboard.closed') : days <= 1 ? t('dashboard.today') + '!' : `${days}d`}
       </span>
       <button onClick={() => onUnsave(opp.id)} className="shrink-0 hover:text-error transition-colors text-outline">
         <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1", color: '#ffb4ab' }}>favorite</span>
@@ -109,8 +112,10 @@ function SavedRow({ opp, onUnsave }) {
 
 // ─── Deadline item ────────────────────────────────────────────
 function DeadlineItem({ opp }) {
+  const { t, locale } = useLocale()
   const days  = getDaysLeft(opp.deadline)
-  const date  = new Date(opp.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  const dateFmt = locale === 'kk' ? 'kk-KZ' : locale === 'ru' ? 'ru-RU' : 'en-US'
+  const date  = new Date(opp.deadline).toLocaleDateString(dateFmt, { month: 'short', day: 'numeric' })
   const color = CATEGORY_COLOR[opp.category] || '#95ccff'
   const urgencyColor = days <= 3 ? '#ffb4ab' : days <= 7 ? '#ffb960' : '#bfc7d2'
 
@@ -121,7 +126,7 @@ function DeadlineItem({ opp }) {
         <p className="text-sm text-on-surface truncate">{opp.title}</p>
         <p className="text-xs mt-0.5" style={{ color: urgencyColor }}>
           {date}
-          {days <= 7 && days >= 0 && ` · ${days === 0 ? 'today' : `${days}d left`}`}
+          {days <= 7 && days >= 0 && ` · ${days === 0 ? t('dashboard.today') : `${days}${t('dashboard.dLeft')}`}`}
         </p>
       </div>
     </div>
@@ -130,6 +135,7 @@ function DeadlineItem({ opp }) {
 
 // ─── Recommendation card ──────────────────────────────────────
 function RecCard({ item, type }) {
+  const { t }  = useLocale()
   const to    = type === 'course' ? `/courses/${item.id}` : `/opportunities`
   const color = type === 'course' ? '#41e7be' : '#95ccff'
 
@@ -137,12 +143,12 @@ function RecCard({ item, type }) {
     <Link to={to}
       className="level-1-card rounded-xl p-4 flex flex-col gap-2 min-w-[220px] max-w-[260px] hover:-translate-y-1 transition-transform duration-200 shrink-0">
       <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color }}>
-        {type === 'course' ? 'Course' : item.category}
+        {type === 'course' ? t('dashboard.course') : item.category}
       </span>
       <h4 className="text-sm font-semibold text-on-surface line-clamp-2">{item.title}</h4>
       <p className="text-xs text-on-surface-variant line-clamp-2 flex-1">{item.reason}</p>
       <span className="text-xs font-semibold text-primary-container flex items-center gap-1 mt-1">
-        View <span className="material-symbols-outlined text-[13px]">arrow_forward</span>
+        {t('dashboard.view')} <span className="material-symbols-outlined text-[13px]">arrow_forward</span>
       </span>
     </Link>
   )
@@ -161,6 +167,7 @@ function Empty({ icon, text, linkTo, linkLabel }) {
 
 // ─── Page ─────────────────────────────────────────────────────
 export default function DashboardPage({ session, onLoginRequired }) {
+  const { t }                           = useLocale()
   const [loading, setLoading]           = useState(true)
   const [profile, setProfile]           = useState(null)
   const [enrolledCourses, setEnrolledCourses] = useState([])
@@ -233,9 +240,9 @@ export default function DashboardPage({ session, onLoginRequired }) {
     return (
       <main className="max-w-desktop mx-auto px-6 py-24 flex flex-col items-center text-center gap-4">
         <span className="material-symbols-outlined text-[48px] text-outline">lock</span>
-        <h2 className="text-xl font-semibold text-on-surface">Sign in to view your dashboard</h2>
+        <h2 className="text-xl font-semibold text-on-surface">{t('auth.signInDashboard')}</h2>
         <button onClick={onLoginRequired} className="gradient-btn text-sm font-semibold text-white px-6 py-3 rounded-lg">
-          Sign In
+          {t('auth.signIn')}
         </button>
       </main>
     )
@@ -250,16 +257,16 @@ export default function DashboardPage({ session, onLoginRequired }) {
       {/* Welcome */}
       <div className="mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-on-surface">
-          {greeting()}, <span className="bg-brand-gradient bg-clip-text text-transparent">{displayName}</span> 👋
+          {greeting(t)}, <span className="bg-brand-gradient bg-clip-text text-transparent">{displayName}</span> 👋
         </h1>
-        <p className="text-on-surface-variant mt-1">Here's where you left off.</p>
+        <p className="text-on-surface-variant mt-1">{t('dashboard.leftOff')}</p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-10">
-        <Stat icon="school"            value={enrolledCourses.length} label="Courses enrolled"     color="#95ccff" />
-        <Stat icon="check_circle"      value={completedCount}         label="Lessons completed"    color="#41e7be" />
-        <Stat icon="favorite" value={savedOpps.length}       label="Opportunities saved"  color="#ffb4ab" />
+        <Stat icon="school"            value={enrolledCourses.length} label={t('dashboard.coursesEnrolled')}     color="#95ccff" />
+        <Stat icon="check_circle"      value={completedCount}         label={t('dashboard.lessonsCompleted')}    color="#41e7be" />
+        <Stat icon="favorite" value={savedOpps.length}       label={t('dashboard.oppsSaved')}  color="#ffb4ab" />
       </div>
 
       {/* Main 2-col grid */}
@@ -271,8 +278,8 @@ export default function DashboardPage({ session, onLoginRequired }) {
           {/* My Courses */}
           <div className="glass-panel rounded-2xl p-5">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-semibold text-on-surface">My Courses</h2>
-              <Link to="/courses" className="text-xs text-primary hover:opacity-80 transition-opacity">Browse all →</Link>
+              <h2 className="text-base font-semibold text-on-surface">{t('dashboard.myCourses')}</h2>
+              <Link to="/courses" className="text-xs text-primary hover:opacity-80 transition-opacity">{t('dashboard.browseAll')} →</Link>
             </div>
             {loading ? (
               <div className="space-y-3 animate-pulse">
@@ -285,15 +292,15 @@ export default function DashboardPage({ session, onLoginRequired }) {
                 ))}
               </div>
             ) : (
-              <Empty icon="school" text="You haven't enrolled in any courses yet." linkTo="/courses" linkLabel="Browse courses" />
+              <Empty icon="school" text={t('dashboard.noCourses')} linkTo="/courses" linkLabel={t('dashboard.browseCourses')} />
             )}
           </div>
 
           {/* Saved Opportunities */}
           <div className="glass-panel rounded-2xl p-5">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-semibold text-on-surface">Saved Opportunities</h2>
-              <Link to="/opportunities" className="text-xs text-primary hover:opacity-80 transition-opacity">Browse all →</Link>
+              <h2 className="text-base font-semibold text-on-surface">{t('dashboard.savedOpps')}</h2>
+              <Link to="/opportunities" className="text-xs text-primary hover:opacity-80 transition-opacity">{t('dashboard.browseAll')} →</Link>
             </div>
             {loading ? (
               <div className="space-y-3 animate-pulse">
@@ -306,7 +313,7 @@ export default function DashboardPage({ session, onLoginRequired }) {
                 ))}
               </div>
             ) : (
-              <Empty icon="bookmark" text="No saved opportunities yet." linkTo="/opportunities" linkLabel="Explore opportunities" />
+              <Empty icon="bookmark" text={t('dashboard.noSaved')} linkTo="/opportunities" linkLabel={t('dashboard.exploreOpps')} />
             )}
           </div>
 
@@ -314,7 +321,7 @@ export default function DashboardPage({ session, onLoginRequired }) {
 
         {/* Right: upcoming deadlines */}
         <div className="glass-panel rounded-2xl p-5 h-fit">
-          <h2 className="text-base font-semibold text-on-surface mb-4">Upcoming Deadlines</h2>
+          <h2 className="text-base font-semibold text-on-surface mb-4">{t('dashboard.upcomingDeadlines')}</h2>
           {loading ? (
             <div className="space-y-4 animate-pulse">
               {[1,2,3].map(i => <div key={i} className="h-10 bg-surface-container-high rounded" />)}
@@ -324,7 +331,7 @@ export default function DashboardPage({ session, onLoginRequired }) {
               {upcomingDeadlines.map(o => <DeadlineItem key={o.id} opp={o} />)}
             </div>
           ) : (
-            <Empty icon="event" text="No upcoming deadlines." />
+            <Empty icon="event" text={t('dashboard.noDeadlines')} />
           )}
         </div>
 
@@ -334,8 +341,8 @@ export default function DashboardPage({ session, onLoginRequired }) {
       {!loading && recItems.length > 0 && (
         <div>
           <div className="flex items-baseline gap-3 mb-4">
-            <h2 className="text-base font-semibold text-on-surface">Recommended for You</h2>
-            <p className="text-xs text-on-surface-variant">Based on your profile</p>
+            <h2 className="text-base font-semibold text-on-surface">{t('dashboard.recommended')}</h2>
+            <p className="text-xs text-on-surface-variant">{t('dashboard.basedOnProfile')}</p>
           </div>
           <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
             {recItems.map(item => (

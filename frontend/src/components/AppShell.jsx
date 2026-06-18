@@ -1,16 +1,19 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTheme } from '../hooks/useTheme'
+import { useLocale } from '../i18n/LocaleContext'
+import LanguageSwitcher from './LanguageSwitcher'
 import ProfileModal from './ProfileModal'
 
 const NAV = [
-  { to: '/dashboard',     icon: 'grid_view',             label: 'Dashboard'     },
-  { to: '/opportunities', icon: 'emoji_events',           label: 'Opportunities' },
-  { to: '/courses',       icon: 'school',                 label: 'Courses'       },
+  { to: '/dashboard',     icon: 'grid_view',             label: 'nav.dashboard'     },
+  { to: '/opportunities', icon: 'emoji_events',           label: 'nav.opportunities' },
+  { to: '/courses',       icon: 'school',                 label: 'nav.courses'       },
 ]
-const ADMIN_NAV = { to: '/admin', icon: 'admin_panel_settings', label: 'Admin' }
+const ADMIN_NAV = { to: '/admin', icon: 'admin_panel_settings', label: 'nav.admin' }
 
 function NavItem({ item, active, onClick }) {
+  const { t } = useLocale()
   return (
     <Link
       to={item.to}
@@ -27,7 +30,7 @@ function NavItem({ item, active, onClick }) {
       >
         {item.icon}
       </span>
-      <span>{item.label}</span>
+      <span>{t(item.label)}</span>
     </Link>
   )
 }
@@ -61,6 +64,7 @@ function Avatar({ profile, session, size = 8 }) {
 }
 
 function SidebarContent({ session, profile, isAdmin, pathname, onClose, onSignOut, onOpenProfile, dark, onToggle }) {
+  const { t } = useLocale()
   const items = [...NAV, ...(isAdmin ? [ADMIN_NAV] : [])]
   const displayName = profile?.full_name || session?.user?.email?.split('@')[0] || ''
 
@@ -112,14 +116,15 @@ function SidebarContent({ session, profile, isAdmin, pathname, onClose, onSignOu
           <span className="material-symbols-outlined text-[22px] shrink-0">
             {dark ? 'light_mode' : 'dark_mode'}
           </span>
-          {dark ? 'Light mode' : 'Dark mode'}
+          {dark ? t('theme.light') : t('theme.dark')}
         </button>
+        <LanguageSwitcher compact />
         <button
           onClick={onSignOut}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-on-surface-variant hover:bg-surface-container-high hover:text-error transition-all duration-150"
         >
           <span className="material-symbols-outlined text-[22px] shrink-0">logout</span>
-          Sign Out
+          {t('auth.signOut')}
         </button>
       </div>
 
