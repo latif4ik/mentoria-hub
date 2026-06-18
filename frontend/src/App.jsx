@@ -6,18 +6,21 @@ import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import AuthModal from './components/AuthModal'
 import Onboarding from './components/Onboarding'
+import MentorOnboarding from './components/MentorOnboarding'
 import LandingPage from './pages/LandingPage'
 import OpportunitiesPage from './pages/OpportunitiesPage'
 import CoursesPage from './pages/CoursesPage'
 import CourseDetailPage from './pages/CourseDetailPage'
 import LessonPlayerPage from './pages/LessonPlayerPage'
 import DashboardPage from './pages/DashboardPage'
+import MentorDashboardPage from './pages/MentorDashboardPage'
 import AdminPage from './pages/AdminPage'
 
 export default function App() {
   const [session, setSession]             = useState(null)
   const [sessionLoading, setSessionLoading] = useState(true)
   const [showAuth, setShowAuth]           = useState(false)
+  const [authRole, setAuthRole]           = useState(null)
   const [profile, setProfile]             = useState(null)
   const [profileLoaded, setProfileLoaded] = useState(false)
 
@@ -40,7 +43,7 @@ export default function App() {
       .then(({ data }) => { setProfile(data); setProfileLoaded(true) })
   }, [session])
 
-  const openAuth = () => setShowAuth(true)
+  const openAuth = (role = null) => { setAuthRole(role); setShowAuth(true) }
 
   async function handleSignOut() {
     await supabase.auth.signOut()
@@ -50,7 +53,8 @@ export default function App() {
     setProfileLoaded(false)
   }
 
-  const needsOnboarding = session && profileLoaded && (!profile || profile.grade === null)
+  const needsStudentOnboarding = session && profileLoaded && profile?.role !== 'mentor' && profile?.role !== 'admin' && (!profile || profile.grade === null)
+  const needsMentorOnboarding = session && profileLoaded && profile?.role === 'mentor' && (!profile?.teaching_subjects?.length)
 
   // Prevent a flash of the public layout while restoring an existing session
   if (sessionLoading) {
@@ -73,7 +77,10 @@ export default function App() {
         >
           <Routes>
             {/* Landing page → dashboard for logged-in users */}
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/" element={<Navigate to={profile?.role === 'mentor' ? '/mentor-dashboard' : '/dashboard'} replace />} />
+            <Route path="/mentor-dashboard" element={
+              <MentorDashboardPage session={session} profile={profile} />
+            } />
             <Route path="/dashboard" element={
               <DashboardPage session={session} onLoginRequired={openAuth} />
             } />
@@ -92,14 +99,17 @@ export default function App() {
             <Route path="/admin" element={
               <AdminPage session={session} profile={profile} />
             } />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            <Route path="*" element={<Navigate to={profile?.role === 'mentor' ? '/mentor-dashboard' : '/dashboard'} replace />} />
           </Routes>
 
-          {needsOnboarding && (
+          {needsStudentOnboarding && (
             <Onboarding
               userId={session.user.id}
               onComplete={(answers) => setProfile(prev => ({ ...prev, ...answers }))}
             />
+          )}
+          {needsMentorOnboarding && (
+            <MentorOnboarding userId={session.user.id} onComplete={(data) => setProfile(data)} />
           )}
         </AppShell>
       ) : (
@@ -112,11 +122,11 @@ export default function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </div>
-          <Footer />
+          <Footer onMentorSignup={() => openAuth('mentor')} />
         </div>
       )}
 
-      {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+      {showAuth && <AuthModal onClose={() => { setShowAuth(false); setAuthRole(null) }} defaultRole={authRole} />}
     </BrowserRouter>
   )
 }

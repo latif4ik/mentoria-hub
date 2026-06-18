@@ -12,7 +12,7 @@ function LogoMark() {
   )
 }
 
-export default function Footer() {
+export default function Footer({ onMentorSignup }) {
   const { t } = useLocale()
 
   const LINKS = {
@@ -33,6 +33,16 @@ export default function Footer() {
           <p className="text-sm text-on-surface-variant leading-relaxed max-w-[200px]">
             {t('footer.tagline')}
           </p>
+
+          {onMentorSignup && (
+            <button
+              onClick={onMentorSignup}
+              className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
+            >
+              {t('mentor.forMentors')}
+              <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+            </button>
+          )}
 
           {/* Language switcher */}
           <div className="mt-2">

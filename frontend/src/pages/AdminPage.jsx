@@ -534,7 +534,7 @@ function LessonsPanel({ course, onBack }) {
 }
 
 // ─── Courses tab ──────────────────────────────────────────────
-function CoursesTab() {
+function CoursesTab({ session, profile }) {
   const [items, setItems]           = useState([])
   const [loading, setLoading]       = useState(true)
   const [modal, setModal]           = useState(null)
@@ -544,10 +544,12 @@ function CoursesTab() {
 
   const load = useCallback(async () => {
     setLoading(true)
-    const { data } = await supabase.from('courses').select('*, lessons(id)').order('created_at')
+    let query = supabase.from('courses').select('*, lessons(id)').order('created_at')
+    if (profile?.role === 'mentor') query = query.eq('created_by', session.user.id)
+    const { data } = await query
     setItems(data || [])
     setLoading(false)
-  }, [])
+  }, [session, profile])
 
   useEffect(() => { load() }, [load])
 
@@ -556,7 +558,7 @@ function CoursesTab() {
     if (modal.item?.id) {
       await supabase.from('courses').update(data).eq('id', modal.item.id)
     } else {
-      await supabase.from('courses').insert(data)
+      await supabase.from('courses').insert({ ...data, created_by: session.user.id })
     }
     setSaving(false)
     setModal(null)
@@ -653,8 +655,8 @@ export default function AdminPage({ session, profile }) {
     )
   }
 
-  // Not admin
-  if (profile && profile.role !== 'admin') {
+  // Not admin or mentor
+  if (profile && profile.role !== 'admin' && profile.role !== 'mentor') {
     return (
       <main className="max-w-desktop mx-auto px-6 py-24 text-center">
         <span className="material-symbols-outlined text-[48px] text-outline block mb-3">block</span>
@@ -709,7 +711,7 @@ export default function AdminPage({ session, profile }) {
       {/* Content */}
       <div className="glass-panel rounded-2xl p-5">
         {tab === 'opportunities' && <OpportunitiesTab />}
-        {tab === 'courses'       && <CoursesTab />}
+        {tab === 'courses'       && <CoursesTab session={session} profile={profile} />}
       </div>
 
     </main>

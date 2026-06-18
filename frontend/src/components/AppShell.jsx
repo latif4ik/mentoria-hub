@@ -12,6 +12,12 @@ const NAV = [
 ]
 const ADMIN_NAV = { to: '/admin', icon: 'admin_panel_settings', label: 'nav.admin' }
 
+const MENTOR_NAV = [
+  { to: '/mentor-dashboard', icon: 'grid_view',    label: 'mentor.nav.dashboard' },
+  { to: '/courses',          icon: 'school',        label: 'nav.courses' },
+  { to: '/admin',            icon: 'edit_note',     label: 'mentor.nav.myCourses' },
+]
+
 function NavItem({ item, active, onClick }) {
   const { t } = useLocale()
   return (
@@ -65,7 +71,10 @@ function Avatar({ profile, session, size = 8 }) {
 
 function SidebarContent({ session, profile, isAdmin, pathname, onClose, onSignOut, onOpenProfile, dark, onToggle }) {
   const { t } = useLocale()
-  const items = [...NAV, ...(isAdmin ? [ADMIN_NAV] : [])]
+  const isMentor = profile?.role === 'mentor'
+  const items = isMentor
+    ? MENTOR_NAV
+    : [...NAV, ...(isAdmin ? [ADMIN_NAV] : [])]
   const displayName = profile?.full_name || session?.user?.email?.split('@')[0] || ''
 
   return (
@@ -85,8 +94,8 @@ function SidebarContent({ session, profile, isAdmin, pathname, onClose, onSignOu
       {/* Nav items */}
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
         {items.map(item => {
-          const active = item.to === '/dashboard'
-            ? pathname === '/dashboard'
+          const active = (item.to === '/dashboard' || item.to === '/mentor-dashboard')
+            ? pathname === item.to
             : pathname.startsWith(item.to)
           return <NavItem key={item.to} item={item} active={active} onClick={onClose} />
         })}
@@ -103,6 +112,7 @@ function SidebarContent({ session, profile, isAdmin, pathname, onClose, onSignOu
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium text-on-surface truncate">{displayName}</p>
             {isAdmin && <p className="text-[11px] text-tertiary font-semibold">Admin</p>}
+            {isMentor && <p className="text-[11px] text-tertiary font-semibold">Mentor</p>}
           </div>
           <span className="material-symbols-outlined text-[16px] text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
             edit

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { useLocale } from '../i18n/LocaleContext'
 
-export default function AuthModal({ onClose }) {
+export default function AuthModal({ onClose, defaultRole = null }) {
   const { t } = useLocale()
   const [mode, setMode] = useState('login') // 'login' | 'signup'
   const [email, setEmail] = useState('')
@@ -22,9 +22,15 @@ export default function AuthModal({ onClose }) {
       if (error) setError(error.message)
       else onClose()
     } else {
-      const { error } = await supabase.auth.signUp({ email, password })
-      if (error) setError(error.message)
-      else onClose()
+      const { data: signUpData, error } = await supabase.auth.signUp({ email, password })
+      if (error) {
+        setError(error.message)
+      } else {
+        if (defaultRole === 'mentor' && signUpData?.user) {
+          await supabase.from('profiles').upsert({ id: signUpData.user.id, role: 'mentor' })
+        }
+        onClose()
+      }
     }
 
     setLoading(false)
@@ -52,10 +58,10 @@ export default function AuthModal({ onClose }) {
         {/* Header */}
         <div className="mb-6">
           <h2 className="text-xl font-bold text-on-surface">
-            {mode === 'login' ? t('auth.welcomeBack') : t('auth.createAccount')}
+            {mode === 'login' ? t('auth.welcomeBack') : defaultRole === 'mentor' ? t('mentor.becomeMentor') : t('auth.createAccount')}
           </h2>
           <p className="text-sm text-on-surface-variant mt-1">
-            {mode === 'login' ? t('auth.signInSub') : t('auth.signUpSub')}
+            {mode === 'login' ? t('auth.signInSub') : defaultRole === 'mentor' ? t('mentor.mentorSub') : t('auth.signUpSub')}
           </p>
         </div>
 

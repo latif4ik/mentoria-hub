@@ -45,6 +45,11 @@ function CourseCard({ course, isEnrolled, completedLessonIds }) {
       <p className="text-sm text-on-surface-variant leading-relaxed line-clamp-2 flex-1 mb-3">
         {course.description}
       </p>
+      {course.mentor?.full_name && (
+        <p className="text-xs text-on-surface-variant mb-1">
+          {t('mentor.by')} {course.mentor.full_name}
+        </p>
+      )}
       <p className="text-xs text-on-surface-variant mb-3">{total} {t('courses.lessons')}</p>
 
       {/* Progress bar (enrolled only) */}
@@ -100,7 +105,7 @@ export default function CoursesPage({ session }) {
   const [loading, setLoading]                   = useState(true)
 
   useEffect(() => {
-    supabase.from('courses').select('*, lessons(id, position, title)').order('created_at')
+    supabase.from('courses').select('*, lessons(id, position, title), mentor:profiles!created_by(full_name)').order('created_at')
       .then(({ data }) => { setCourses(data || []); setLoading(false) })
   }, [])
 

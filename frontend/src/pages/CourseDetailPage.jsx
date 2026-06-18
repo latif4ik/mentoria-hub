@@ -18,7 +18,7 @@ export default function CourseDetailPage({ session, onLoginRequired }) {
   const [loading, setLoading]     = useState(true)
 
   useEffect(() => {
-    supabase.from('courses').select('*').eq('id', courseId).single()
+    supabase.from('courses').select('*, mentor:profiles!created_by(full_name, avatar_url)').eq('id', courseId).single()
       .then(({ data }) => setCourse(data))
 
     supabase.from('lessons').select('*').eq('course_id', courseId).order('position')
@@ -88,6 +88,19 @@ export default function CourseDetailPage({ session, onLoginRequired }) {
             {lessons.length} {t('courseDetail.lessons')}
           </span>
         </div>
+
+        {course.mentor?.full_name && (
+          <p className="text-sm text-on-surface-variant mb-2 flex items-center gap-2">
+            {course.mentor.avatar_url ? (
+              <img src={course.mentor.avatar_url} alt="" className="w-6 h-6 rounded-full object-cover" />
+            ) : (
+              <span className="w-6 h-6 rounded-full gradient-btn flex items-center justify-center text-[10px] font-bold text-white">
+                {course.mentor.full_name[0]}
+              </span>
+            )}
+            {t('mentor.by')} {course.mentor.full_name}
+          </p>
+        )}
 
         <h1 className="text-2xl sm:text-3xl font-bold text-on-surface mb-3">{course.title}</h1>
         <p className="text-on-surface-variant leading-relaxed mb-6">{course.description}</p>
