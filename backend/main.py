@@ -38,7 +38,128 @@ QUIZ_MODEL     = os.getenv("QUIZ_MODEL",    "gemini-2.5-flash")    # Pass 2: not
 
 class GenerateRequest(BaseModel):
     youtube_url: str
-    num_questions: int = 50
+    num_questions: int = 10
+
+
+# ── Demo cache — instant response for known videos ──────────────────────────
+
+import re
+
+def _extract_video_id(url: str) -> str | None:
+    """Pull the 11-char YouTube video ID from any URL format."""
+    m = re.search(r'(?:v=|youtu\.be/|/embed/|/shorts/)([A-Za-z0-9_-]{11})', url)
+    return m.group(1) if m else None
+
+
+DEMO_CACHE = {
+    "kZzoVCmUyKg": {
+        "notes": {
+            "title": "Introduction to Fractions",
+            "summary": (
+                "This lesson provides a beginner-friendly introduction to fractions. "
+                "It explains what fractions are and how they represent parts of a whole. "
+                "The video covers the key terminology: numerator (the top number) and denominator (the bottom number). "
+                "Students learn about proper fractions, improper fractions, and mixed numbers with clear visual examples. "
+                "The concept of equivalent fractions is introduced, showing how different fractions can represent the same value. "
+                "The lesson also demonstrates how to simplify fractions by finding the greatest common factor. "
+                "Finally, the video touches on comparing fractions using common denominators and cross-multiplication."
+            ),
+            "key_points": [
+                "A fraction represents a part of a whole, written as one number over another separated by a line",
+                "The numerator (top) tells how many parts you have; the denominator (bottom) tells how many equal parts the whole is divided into",
+                "Proper fractions have a numerator smaller than the denominator (e.g. 3/4)",
+                "Improper fractions have a numerator equal to or larger than the denominator (e.g. 7/4)",
+                "A mixed number combines a whole number with a proper fraction (e.g. 1 3/4)",
+                "Equivalent fractions look different but represent the same value (e.g. 1/2 = 2/4 = 3/6)",
+                "To simplify a fraction, divide both numerator and denominator by their greatest common factor (GCF)",
+                "To compare fractions, convert them to a common denominator, then compare numerators",
+                "Fractions, decimals, and percentages are three ways to express the same value",
+            ],
+            "outline": [
+                {"timestamp": "0:00", "topic": "What is a fraction?"},
+                {"timestamp": "1:15", "topic": "Numerator and denominator explained"},
+                {"timestamp": "2:40", "topic": "Proper vs. improper fractions"},
+                {"timestamp": "4:05", "topic": "Mixed numbers"},
+                {"timestamp": "5:30", "topic": "Equivalent fractions"},
+                {"timestamp": "7:00", "topic": "Simplifying fractions using GCF"},
+                {"timestamp": "8:45", "topic": "Comparing fractions"},
+                {"timestamp": "10:10", "topic": "Recap and practice tips"},
+            ],
+        },
+        "quiz": [
+            {
+                "question": "What does the denominator of a fraction represent?",
+                "options": [
+                    "The number of parts you have",
+                    "The total number of equal parts the whole is divided into",
+                    "The whole number part of a mixed number",
+                    "The result of dividing two numbers",
+                ],
+                "correct_index": 1,
+                "explanation": "The denominator (bottom number) tells you how many equal parts the whole is divided into.",
+            },
+            {
+                "question": "Which of the following is an improper fraction?",
+                "options": ["3/4", "1/2", "7/5", "2/3"],
+                "correct_index": 2,
+                "explanation": "In an improper fraction the numerator is larger than the denominator. 7/5 has 7 > 5.",
+            },
+            {
+                "question": "What is the mixed number equivalent of the improper fraction 9/4?",
+                "options": ["2 1/4", "1 3/4", "2 1/2", "3 1/4"],
+                "correct_index": 0,
+                "explanation": "9 ÷ 4 = 2 remainder 1, so 9/4 = 2 1/4.",
+            },
+            {
+                "question": "Which fraction is equivalent to 2/3?",
+                "options": ["3/4", "4/6", "5/6", "2/6"],
+                "correct_index": 1,
+                "explanation": "Multiply both numerator and denominator of 2/3 by 2: 2×2 = 4, 3×2 = 6, giving 4/6.",
+            },
+            {
+                "question": "What is 12/18 simplified to its lowest terms?",
+                "options": ["6/9", "3/4", "2/3", "4/6"],
+                "correct_index": 2,
+                "explanation": "The GCF of 12 and 18 is 6. 12÷6 = 2, 18÷6 = 3, so the answer is 2/3.",
+            },
+            {
+                "question": "What does the numerator of a fraction tell you?",
+                "options": [
+                    "How many equal parts the whole is divided into",
+                    "How many parts you have or are counting",
+                    "The value of the whole",
+                    "Whether the fraction is proper or improper",
+                ],
+                "correct_index": 1,
+                "explanation": "The numerator (top number) indicates how many parts of the whole you have.",
+            },
+            {
+                "question": "Which fraction is larger: 3/8 or 5/8?",
+                "options": ["3/8", "5/8", "They are equal", "Cannot be determined"],
+                "correct_index": 1,
+                "explanation": "When denominators are the same, the fraction with the larger numerator is larger. 5 > 3.",
+            },
+            {
+                "question": "Which of these is a proper fraction?",
+                "options": ["5/3", "8/8", "4/7", "11/9"],
+                "correct_index": 2,
+                "explanation": "A proper fraction has a numerator smaller than its denominator. 4 < 7.",
+            },
+            {
+                "question": "How do you convert 3 1/2 to an improper fraction?",
+                "options": ["5/2", "7/2", "6/2", "3/2"],
+                "correct_index": 1,
+                "explanation": "Multiply the whole number by the denominator and add the numerator: 3×2 + 1 = 7, so 7/2.",
+            },
+            {
+                "question": "What is the greatest common factor (GCF) of 8 and 12?",
+                "options": ["2", "4", "6", "8"],
+                "correct_index": 1,
+                "explanation": "Factors of 8: 1, 2, 4, 8. Factors of 12: 1, 2, 3, 4, 6, 12. The greatest common factor is 4.",
+            },
+        ],
+    },
+}
 
 
 def _client():
@@ -124,8 +245,17 @@ def health():
 def generate_lesson(req: GenerateRequest):
     """
     Pass 1: video -> structured notes + summary (processes the video ONCE).
-    Pass 2: notes -> quiz bank in batches of 10 (cheap, text-only).
+    Pass 2: notes -> quiz bank in batches of 5 (cheap, text-only).
+    Returns cached response instantly for demo videos.
     """
+    # ── Check demo cache first ───────────────────────────────────────────────
+    vid = _extract_video_id(req.youtube_url)
+    if vid and vid in DEMO_CACHE:
+        logger.info("Cache HIT for video %s — returning instant demo response", vid)
+        cached = DEMO_CACHE[vid]
+        return {"notes": cached["notes"], "quiz": cached["quiz"][:req.num_questions], "quiz_count": len(cached["quiz"])}
+
+    # ── Live AI pipeline ─────────────────────────────────────────────────────
     client = _client()
 
     # ── Pass 1: video → notes (the only call that touches the video) ──────────

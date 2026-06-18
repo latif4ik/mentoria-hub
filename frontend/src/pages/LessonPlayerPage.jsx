@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 
@@ -8,14 +8,47 @@ function shuffle(arr) {
 
 function getEmbedUrl(url) {
   if (!url) return null
-  if (url.includes('youtube.com/embed/')) return url.split('?')[0] + '?rel=0'
+  const params = 'rel=0&enablejsapi=1&origin=' + encodeURIComponent(window.location.origin)
+  if (url.includes('youtube.com/embed/')) return url.split('?')[0] + '?' + params
   const short   = url.match(/youtu\.be\/([^?&]+)/)
-  if (short)   return `https://www.youtube.com/embed/${short[1]}?rel=0`
+  if (short)   return `https://www.youtube.com/embed/${short[1]}?${params}`
   const shorts  = url.match(/youtube\.com\/shorts\/([^?&]+)/)
-  if (shorts)  return `https://www.youtube.com/embed/${shorts[1]}?rel=0`
+  if (shorts)  return `https://www.youtube.com/embed/${shorts[1]}?${params}`
   const watch   = url.match(/[?&]v=([^&]+)/)
-  if (watch)   return `https://www.youtube.com/embed/${watch[1]}?rel=0`
+  if (watch)   return `https://www.youtube.com/embed/${watch[1]}?${params}`
   return null
+}
+
+function timeToSeconds(ts) {
+  const parts = ts.split(':').map(Number)
+  if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2]
+  return parts[0] * 60 + parts[1]
+}
+
+// Renders text with MM:SS timestamps as clickable buttons
+function TimestampText({ text, onSeek }) {
+  if (!text) return null
+  const parts = text.split(/((?:\d{1,2}:)?\d{1,2}:\d{2})/)
+  return (
+    <>
+      {parts.map((part, i) => {
+        if (/^(?:\d{1,2}:)?\d{1,2}:\d{2}$/.test(part)) {
+          return (
+            <button
+              key={i}
+              onClick={() => onSeek(part)}
+              className="inline-flex items-center gap-0.5 text-primary font-medium hover:underline cursor-pointer"
+              title={`Jump to ${part}`}
+            >
+              <span className="material-symbols-outlined text-[14px]">play_circle</span>
+              {part}
+            </button>
+          )
+        }
+        return <span key={i}>{part}</span>
+      })}
+    </>
+  )
 }
 
 // ─── Quiz ─────────────────────────────────────────────────────
@@ -132,6 +165,7 @@ function Quiz({ questions, lessonId, session, onLoginRequired, existingScore, on
 export default function LessonPlayerPage({ session, onLoginRequired }) {
   const { courseId, lessonId } = useParams()
   const navigate = useNavigate()
+  const iframeRef = useRef(null)
 
   const [lesson, setLesson]         = useState(null)
   const [course, setCourse]         = useState(null)
@@ -176,6 +210,17 @@ export default function LessonPlayerPage({ session, onLoginRequired }) {
   const prevLesson = allLessons[currentIdx - 1]
   const nextLesson = allLessons[currentIdx + 1]
 
+  function seekTo(timestamp) {
+    const seconds = timeToSeconds(timestamp)
+    if (iframeRef.current) {
+      iframeRef.current.contentWindow.postMessage(
+        JSON.stringify({ event: 'command', func: 'seekTo', args: [seconds, true] }),
+        'https://www.youtube.com'
+      )
+      iframeRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }
+
   if (loading) {
     return (
       <main className="max-w-3xl mx-auto px-6 py-12 animate-pulse space-y-4">
@@ -213,6 +258,7 @@ export default function LessonPlayerPage({ session, onLoginRequired }) {
       <div className="mb-8">
         {embedUrl ? (
           <iframe
+            ref={iframeRef}
             src={embedUrl}
             title={lesson.title}
             className="w-full aspect-video rounded-xl border border-outline-variant/20"
@@ -235,11 +281,13 @@ export default function LessonPlayerPage({ session, onLoginRequired }) {
         </div>
       )}
 
-      {/* Content */}
+      {/* Content with clickable timestamps */}
       {lesson.content && (
         <div className="mb-10">
           <h2 className="text-lg font-semibold text-on-surface mb-3">Lesson Notes</h2>
-          <p className="text-sm text-on-surface-variant leading-relaxed whitespace-pre-line">{lesson.content}</p>
+          <p className="text-sm text-on-surface-variant leading-relaxed whitespace-pre-line">
+            <TimestampText text={lesson.content} onSeek={seekTo} />
+          </p>
         </div>
       )}
 
