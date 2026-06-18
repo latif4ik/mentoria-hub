@@ -55,6 +55,7 @@ export default function App() {
 
   const needsStudentOnboarding = session && profileLoaded && profile?.role !== 'mentor' && profile?.role !== 'admin' && (!profile || profile.grade === null)
   const needsMentorOnboarding = session && profileLoaded && profile?.role === 'mentor' && (!profile?.teaching_subjects?.length)
+  const defaultHome = profile?.role === 'mentor' ? '/mentor-dashboard' : '/dashboard'
 
   // Prevent a flash of the public layout while restoring an existing session
   if (sessionLoading) {
@@ -77,7 +78,11 @@ export default function App() {
         >
           <Routes>
             {/* Landing page → dashboard for logged-in users */}
-            <Route path="/" element={<Navigate to={profile?.role === 'mentor' ? '/mentor-dashboard' : '/dashboard'} replace />} />
+            <Route path="/" element={
+              profileLoaded
+                ? <Navigate to={defaultHome} replace />
+                : <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
+            } />
             <Route path="/mentor-dashboard" element={
               <MentorDashboardPage session={session} profile={profile} />
             } />
@@ -99,7 +104,7 @@ export default function App() {
             <Route path="/admin" element={
               <AdminPage session={session} profile={profile} />
             } />
-            <Route path="*" element={<Navigate to={profile?.role === 'mentor' ? '/mentor-dashboard' : '/dashboard'} replace />} />
+            <Route path="*" element={<Navigate to={defaultHome} replace />} />
           </Routes>
 
           {needsStudentOnboarding && (
